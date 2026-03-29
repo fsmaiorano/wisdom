@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Minio;
+using Npgsql;
 using Wisdom.BuildingBlocks.Events.DomainEvents;
 using Wisdom.BuildingBlocks.Events.DomainEvents.Interfaces;
 using Wisdom.BuildingBlocks.Events.Idempotency;
@@ -24,10 +25,12 @@ public static class DependencyInjection
         services.AddIdempotency<MediaDbContext>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")!;
+        services.AddNpgsqlDataSource(connectionString);
         services.AddDbContext<MediaDbContext>((sp, options) =>
         {
-            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("Wisdom.Media.Infrastructure.Migration"));
+            options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>(),
+                b => b.MigrationsAssembly("Wisdom.Media.Infrastructure.Migration"));
             options.AddInterceptors(sp.GetRequiredService<ConvertDomainEventsToOutboxMessagesInterceptor>());
         });
 

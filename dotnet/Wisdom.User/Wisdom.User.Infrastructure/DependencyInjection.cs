@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Npgsql;
 using Wisdom.User.Application.Interfaces;
 using Wisdom.User.Domain.Repositories;
 using Wisdom.User.Infrastructure.Data;
@@ -14,9 +15,11 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services,
         IConfiguration configuration)
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-        services.AddDbContext<UserDbContext>(options =>
-            options.UseNpgsql(connectionString, b => b.MigrationsAssembly("Wisdom.User.Infrastructure.Migration")));
+        var connectionString = configuration.GetConnectionString("DefaultConnection")!;
+        services.AddNpgsqlDataSource(connectionString);
+        services.AddDbContext<UserDbContext>((sp, options) =>
+            options.UseNpgsql(sp.GetRequiredService<NpgsqlDataSource>(),
+                b => b.MigrationsAssembly("Wisdom.User.Infrastructure.Migration")));
 
         services.AddScoped<IUserRepository, UserRepository>();
 
