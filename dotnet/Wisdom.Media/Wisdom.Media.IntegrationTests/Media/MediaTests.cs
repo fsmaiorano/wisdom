@@ -6,6 +6,7 @@ using Wisdom.Media.Domain.Enums;
 using Wisdom.Media.IntegrationTests.Fixtures;
 using Wisdom.Tests.Common.Auth;
 using Wisdom.Tests.Common.Builders;
+using Wisdom.Tests.Common.Fakes;
 namespace Wisdom.Media.IntegrationTests.Media;
 
 public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture>
@@ -14,7 +15,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
 
     private async Task<MediaEntity> SeedMediaAsync(MediaTypeEnum type = MediaTypeEnum.Video)
     {
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), type, $"media/test/{BogusFactory.UniqueId()}.mp4");
+        var media = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, BogusFactory.NewGuid(), type, $"media/test/{BogusFactory.UniqueId()}.mp4");
         fixture.DbContext.Media.Add(media);
         await fixture.DbContext.SaveChangesAsync();
         return media;
@@ -24,7 +25,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     {
         var filePath = $"media/test/{BogusFactory.UniqueId()}.mp4";
         var thumbnailPath = $"media/test/{BogusFactory.UniqueId()}-thumb.jpg";
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Video, filePath, thumbnailPath);
+        var media = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Video, filePath, thumbnailPath);
         fixture.DbContext.Media.Add(media);
         await fixture.DbContext.SaveChangesAsync();
         return media;
@@ -159,8 +160,8 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     public async Task GetLessonMedia_WithMultipleMedia_ReturnsAllWithUrls()
     {
         var lessonId = BogusFactory.NewGuid();
-        var media1 = MediaEntity.Create(lessonId, MediaTypeEnum.Video, $"media/test/{BogusFactory.UniqueId()}.mp4");
-        var media2 = MediaEntity.Create(lessonId, MediaTypeEnum.Pdf, $"media/test/{BogusFactory.UniqueId()}.pdf");
+        var media1 = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, lessonId, MediaTypeEnum.Video, $"media/test/{BogusFactory.UniqueId()}.mp4");
+        var media2 = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, lessonId, MediaTypeEnum.Pdf, $"media/test/{BogusFactory.UniqueId()}.pdf");
         fixture.DbContext.Media.AddRange(media1, media2);
         await fixture.DbContext.SaveChangesAsync();
 

@@ -3,6 +3,7 @@ using Wisdom.Media.Domain.Enums;
 using Wisdom.Media.UnitTests.Mocks;
 using Wisdom.Tests.Common.Assertions;
 using Wisdom.Tests.Common.Builders;
+using Wisdom.Tests.Common.Fakes;
 
 namespace Wisdom.Media.UnitTests.Application.UseCases;
 
@@ -10,8 +11,9 @@ public class UploadMediaUseCaseTests
 {
     private readonly FakeMediaRepository _repo = new();
     private readonly FakeMinioService _minio = new();
+    private readonly FakeCorrelationIdService _correlationIdService = new();
 
-    private UploadMediaUseCase CreateUseCase() => new(_repo, _minio);
+    private UploadMediaUseCase CreateUseCase() => new(_repo, _minio, _correlationIdService);
 
     private static Stream CreateFakeStream(string content = "fake content")
         => new MemoryStream(System.Text.Encoding.UTF8.GetBytes(content));
@@ -37,7 +39,7 @@ public class UploadMediaUseCaseTests
         var lessonId = BogusFactory.NewGuid();
         var useCase = CreateUseCase();
 
-        using var stream = CreateFakeStream();
+        await using var stream = CreateFakeStream();
         await useCase.ExecuteAsync(lessonId, MediaTypeEnum.Pdf, stream, "document.pdf", "application/pdf");
 
         Assert.Equal(1, _repo.CreateCallCount);
@@ -52,7 +54,7 @@ public class UploadMediaUseCaseTests
         var lessonId = BogusFactory.NewGuid();
         var useCase = CreateUseCase();
 
-        using var stream = CreateFakeStream();
+        await using var stream = CreateFakeStream();
         var result = await useCase.ExecuteAsync(lessonId, MediaTypeEnum.Image, stream, "image.png", "image/png");
 
         var data = result.ShouldSucceed();
@@ -68,7 +70,7 @@ public class UploadMediaUseCaseTests
         _minio.UploadShouldFail = true;
         var useCase = CreateUseCase();
 
-        using var stream = CreateFakeStream();
+        await using var stream = CreateFakeStream();
         var result = await useCase.ExecuteAsync(BogusFactory.NewGuid(), MediaTypeEnum.Video, stream, "video.mp4",
             "video/mp4");
 
@@ -81,7 +83,7 @@ public class UploadMediaUseCaseTests
         _minio.UploadShouldFail = true;
         var useCase = CreateUseCase();
 
-        using var stream = CreateFakeStream();
+        await using var stream = CreateFakeStream();
         await useCase.ExecuteAsync(BogusFactory.NewGuid(), MediaTypeEnum.Video, stream, "video.mp4", "video/mp4");
 
         Assert.Equal(0, _repo.CreateCallCount);
@@ -93,7 +95,7 @@ public class UploadMediaUseCaseTests
         _repo.CreateShouldFail = true;
         var useCase = CreateUseCase();
 
-        using var stream = CreateFakeStream();
+        await using var stream = CreateFakeStream();
         var result = await useCase.ExecuteAsync(BogusFactory.NewGuid(), MediaTypeEnum.Video, stream, "video.mp4",
             "video/mp4");
 

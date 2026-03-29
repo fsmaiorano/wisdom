@@ -1,4 +1,5 @@
 using Wisdom.BuildingBlocks;
+using Wisdom.BuildingBlocks.Services.Correlation;
 using Wisdom.Media.Application.Dtos;
 using Wisdom.Media.Application.Interfaces;
 using Wisdom.Media.Domain.Entities;
@@ -6,7 +7,7 @@ using Wisdom.Media.Domain.Enums;
 using Wisdom.Media.Domain.Repositories;
 namespace Wisdom.Media.Application.UseCases;
 
-public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService minioService)
+public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService minioService, ICorrelationIdService correlationIdService)
 {
     private const string BucketName = "wisdom-media";
 
@@ -29,7 +30,13 @@ public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService 
         if (!uploadResult.IsSuccess)
             return Result<GetMediaResponse>.Failure(uploadResult.Error!);
 
-        var media = MediaEntity.Create(lessonId, type, uploadResult.Data!, thumbnailPath);
+        var media = MediaEntity.Create(
+            correlationId: correlationIdService.GetCorrelationId(),
+            lessonId: lessonId,
+            type: type,
+            filePath: objectName,
+            thumbnailPath: thumbnailPath
+        );
 
         var createResult = await mediaRepository.CreateAsync(media, ct);
         if (!createResult.IsSuccess)

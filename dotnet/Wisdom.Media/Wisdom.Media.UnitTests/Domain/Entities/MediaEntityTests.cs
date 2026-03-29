@@ -1,17 +1,20 @@
 using Wisdom.Media.Domain.Entities;
 using Wisdom.Media.Domain.Enums;
 using Wisdom.Tests.Common.Builders;
+using Wisdom.Tests.Common.Fakes;
 namespace Wisdom.Media.UnitTests.Domain.Entities;
 
 public class MediaEntityTests
 {
+    private static string CorrelationId => FakeCorrelationIdService.DefaultCorrelationId;
+
     [Fact]
     public void Create_WithValidData_SetsStatusToUploaded()
     {
         var lessonId = BogusFactory.NewGuid();
         var filePath = BogusFactory.Url();
 
-        var media = MediaEntity.Create(lessonId, MediaTypeEnum.Video, filePath);
+        var media = MediaEntity.Create(CorrelationId, lessonId, MediaTypeEnum.Video, filePath);
 
         Assert.Equal(MediaStatusEnum.Uploaded, media.Status);
     }
@@ -20,7 +23,7 @@ public class MediaEntityTests
     public void Create_SetsCreatedAt()
     {
         var before = DateTime.UtcNow;
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Pdf, BogusFactory.Url());
+        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Pdf, BogusFactory.Url());
         var after = DateTime.UtcNow;
 
         Assert.True(media.CreatedAt >= before && media.CreatedAt <= after);
@@ -32,7 +35,7 @@ public class MediaEntityTests
         var lessonId = BogusFactory.NewGuid();
         var filePath = "media/some-object-name/file.mp4";
 
-        var media = MediaEntity.Create(lessonId, MediaTypeEnum.Video, filePath);
+        var media = MediaEntity.Create(CorrelationId, lessonId, MediaTypeEnum.Video, filePath);
 
         Assert.NotNull(media.Id);
         Assert.NotEqual(Guid.Empty, media.Id.Value);
@@ -47,7 +50,7 @@ public class MediaEntityTests
     [Fact]
     public void UpdateStatus_ChangesStatus()
     {
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
+        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
 
         media.UpdateStatus(MediaStatusEnum.Processing);
 
@@ -57,7 +60,7 @@ public class MediaEntityTests
     [Fact]
     public void UpdateStatus_SetsLastModifiedAt()
     {
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
+        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
         var before = DateTime.UtcNow;
 
         media.UpdateStatus(MediaStatusEnum.Failed);
@@ -69,7 +72,7 @@ public class MediaEntityTests
     [Fact]
     public void SetReady_SetsStatusReady_UpdatesThumbnailAndDuration()
     {
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
+        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
         var thumbnailPath = "media/thumb.jpg";
         var duration = 120;
 
@@ -84,7 +87,7 @@ public class MediaEntityTests
     [Fact]
     public void SetReady_WithNullThumbnailAndDuration_SetsStatusReady()
     {
-        var media = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Image, BogusFactory.Url());
+        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Image, BogusFactory.Url());
 
         media.SetReady(null, null);
 
@@ -96,8 +99,8 @@ public class MediaEntityTests
     [Fact]
     public void Create_EachCall_ProducesDifferentIds()
     {
-        var media1 = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
-        var media2 = MediaEntity.Create(BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
+        var media1 = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
+        var media2 = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Video, BogusFactory.Url());
 
         Assert.NotEqual(media1.Id.Value, media2.Id.Value);
     }

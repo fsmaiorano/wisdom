@@ -1,5 +1,6 @@
 using Wisdom.BuildingBlocks.Abstractions;
 using Wisdom.Media.Domain.Enums;
+using Wisdom.Media.Domain.Events;
 using Wisdom.Media.Domain.ValueObjects;
 namespace Wisdom.Media.Domain.Entities;
 
@@ -14,9 +15,15 @@ public class MediaEntity : Aggregate<MediaId>
 
     private MediaEntity() { }
 
-    public static MediaEntity Create(Guid lessonId, MediaTypeEnum type, string filePath, string? thumbnailPath = null)
+    public static MediaEntity Create(
+            string correlationId,
+            Guid lessonId,
+            MediaTypeEnum type,
+            string filePath,
+            string? thumbnailPath = null
+        )
     {
-        return new MediaEntity
+        var entity = new MediaEntity
         {
             Id = MediaId.Of(Guid.NewGuid()),
             LessonId = lessonId,
@@ -26,6 +33,16 @@ public class MediaEntity : Aggregate<MediaId>
             ThumbnailPath = thumbnailPath,
             CreatedAt = DateTime.UtcNow
         };
+
+        entity.AddDomainEvent(MediaCreatedDomainEvent.Create(
+            mediaType: type.ToString(),
+            mediaId: entity.Id.Value.ToString(),
+            lessonId: entity.LessonId.ToString(),
+            filePath: entity.FilePath,
+            correlationId: correlationId ?? Guid.NewGuid().ToString()
+        ));
+
+        return entity;
     }
 
     public void UpdateStatus(MediaStatusEnum status)

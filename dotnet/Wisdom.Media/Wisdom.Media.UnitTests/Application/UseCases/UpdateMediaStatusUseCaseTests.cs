@@ -5,6 +5,7 @@ using Wisdom.Media.Domain.Enums;
 using Wisdom.Media.UnitTests.Mocks;
 using Wisdom.Tests.Common.Assertions;
 using Wisdom.Tests.Common.Builders;
+using Wisdom.Tests.Common.Fakes;
 namespace Wisdom.Media.UnitTests.Application.UseCases;
 
 public class UpdateMediaStatusUseCaseTests
@@ -16,7 +17,7 @@ public class UpdateMediaStatusUseCaseTests
 
     private MediaEntity CreateAndSeedMedia(Guid? lessonId = null)
     {
-        var media = MediaEntity.Create(lessonId ?? BogusFactory.NewGuid(), MediaTypeEnum.Video, "media/path/video.mp4");
+        var media = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, lessonId ?? BogusFactory.NewGuid(), MediaTypeEnum.Video, "media/path/video.mp4");
         _repo.Seed(media);
         return media;
     }
