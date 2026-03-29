@@ -5,6 +5,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Wisdom.BuildingBlocks\Wisdom.BuildingBlocks.csproj"/>
+    <ProjectReference Include="..\..\Wisdom.BuildingBlocks\Wisdom.BuildingBlocks.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Events/" />
   </ItemGroup>
 </Project>
