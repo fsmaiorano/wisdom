@@ -58,11 +58,23 @@ namespace Wisdom.Media.Infrastructure.Migrations.Migrations
                     b.Property<DateTime?>("ProcessedOn")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("RetryCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime?>("ScheduledAfter")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ProcessedOn");
+
+                    b.HasIndex("ScheduledAfter");
 
                     b.ToTable("OutboxMessages", (string)null);
                 });

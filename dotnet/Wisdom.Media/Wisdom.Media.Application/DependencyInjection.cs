@@ -11,13 +11,12 @@ public static class DependencyInjection
     public static IServiceCollection AddApplicationServices(this IServiceCollection services,
         IConfiguration configuration)
     {
-
         services.AddScoped<GetMediaUseCase>();
         services.AddScoped<GetLessonMediaUseCase>();
         services.AddScoped<UpdateMediaStatusUseCase>();
         services.AddScoped<UploadMediaUseCase>();
 
-        services.AddScoped<IDomainEventHandler<MediaCreatedDomainEvent>, MediaCreatedDomainEventHandler>();
+        services.AddScoped<IDomainEventHandler<MediaReadyDomainEvent>, MediaReadyDomainEventHandler>();
 
         return services;
     }

@@ -34,7 +34,7 @@ public class MediaEntity : Aggregate<MediaId>
             CreatedAt = DateTime.UtcNow
         };
 
-        entity.AddDomainEvent(MediaCreatedDomainEvent.Create(
+        entity.AddDomainEvent(MediaReadyDomainEvent.Create(
             mediaType: type.ToString(),
             mediaId: entity.Id.Value.ToString(),
             lessonId: entity.LessonId.ToString(),

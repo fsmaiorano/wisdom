@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Minio;
 using Wisdom.BuildingBlocks.Auth;
+using Wisdom.BuildingBlocks.Events.Outbox;
 using Wisdom.BuildingBlocks.Exceptions;
 using Wisdom.BuildingBlocks.Loggers;
 using Wisdom.BuildingBlocks.Middlewares;
@@ -31,8 +32,12 @@ builder.Services
 
 // Media services — needed to upload lesson videos
 var mediaConnectionString = builder.Configuration.GetConnectionString("MediaConnection");
-builder.Services.AddDbContext<MediaDbContext>(options =>
-    options.UseNpgsql(mediaConnectionString));
+builder.Services.AddScoped<ConvertDomainEventsToOutboxMessagesInterceptor>();
+builder.Services.AddDbContext<MediaDbContext>((sp, options) =>
+{
+    options.UseNpgsql(mediaConnectionString);
+    options.AddInterceptors(sp.GetRequiredService<ConvertDomainEventsToOutboxMessagesInterceptor>());
+});
 builder.Services.AddScoped<IMediaRepository, MediaRepository>();
 
 var minioSettings = builder.Configuration.GetSection("Minio").Get<MinioSettings>() ?? new MinioSettings();

@@ -5,6 +5,7 @@ using Minio;
 using Npgsql;
 using Wisdom.BuildingBlocks.Events.DomainEvents;
 using Wisdom.BuildingBlocks.Events.DomainEvents.Interfaces;
+using Wisdom.BuildingBlocks.Events.Extensions;
 using Wisdom.BuildingBlocks.Events.Idempotency;
 using Wisdom.BuildingBlocks.Events.Outbox;
 using Wisdom.Media.Application.Interfaces;
@@ -21,7 +22,8 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services,
         IConfiguration configuration)
     {
-        services.AddOutbox<MediaDbContext>();
+        services.AddEventBus(configuration);
+        services.AddOutbox<MediaDbContext>(configuration);
         services.AddIdempotency<MediaDbContext>();
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
 
