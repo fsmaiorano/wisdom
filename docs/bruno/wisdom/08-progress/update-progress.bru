@@ -1,0 +1,24 @@
+meta {
+  name: Update Progress
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/progress
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "lessonId": "{{lessonId}}",
+    "courseId": "{{courseId}}",
+    "watchedSeconds": 120,
+    "isCompleted": false
+  }
+}

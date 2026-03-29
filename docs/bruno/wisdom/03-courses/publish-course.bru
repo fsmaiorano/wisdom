@@ -1,0 +1,21 @@
+meta {
+  name: Publish Course
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/api/courses/{{courseId}}/publish
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "publish": true
+  }
+}

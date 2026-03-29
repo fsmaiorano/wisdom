@@ -1,0 +1,15 @@
+meta {
+  name: Delete Lesson
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{baseUrl}}/api/courses/{{courseId}}/lessons/{{lessonId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

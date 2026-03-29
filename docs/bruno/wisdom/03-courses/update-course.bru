@@ -1,0 +1,23 @@
+meta {
+  name: Update Course
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{baseUrl}}/api/courses/{{courseId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Updated Title",
+    "description": "Updated description",
+    "price": 59.99
+  }
+}

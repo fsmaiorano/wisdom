@@ -1,0 +1,59 @@
+using Microsoft.Extensions.Logging;
+namespace Wisdom.BuildingBlocks.Loggers;
+
+public sealed class AppLogger<T>(ILogger<T> logger) : IAppLogger<T>
+{
+    private readonly ILogger<T> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+    public void LogInformation(LogTypeEnum logTypeEnum, string messageTemplate, params object?[] propertyValues)
+    {
+        using var scope = _logger.BeginScope(new Dictionary<string, object> { ["LogType"] = logTypeEnum.ToString() });
+        _logger.LogInformation(messageTemplate, propertyValues);
+    }
+
+    public void LogInformation(string messageTemplate, params object?[] propertyValues)
+    {
+        LogInformation(LogTypeEnum.Application, messageTemplate, propertyValues);
+    }
+
+    public void LogWarning(LogTypeEnum logTypeEnum, string messageTemplate, params object?[] propertyValues)
+    {
+        using var scope = _logger.BeginScope(new Dictionary<string, object> { ["LogType"] = logTypeEnum.ToString() });
+        _logger.LogWarning(messageTemplate, propertyValues);
+    }
+
+    public void LogWarning(string messageTemplate, params object?[] propertyValues)
+    {
+        LogWarning(LogTypeEnum.Application, messageTemplate, propertyValues);
+    }
+
+    public void LogError(LogTypeEnum logTypeEnum, Exception? exception, string messageTemplate, params object?[] propertyValues)
+    {
+        using var scope = _logger.BeginScope(new Dictionary<string, object> { ["LogType"] = logTypeEnum.ToString() });
+        if (exception != null)
+            _logger.LogError(exception, messageTemplate, propertyValues);
+        else
+            _logger.LogError(messageTemplate, propertyValues);
+    }
+
+    public void LogError(Exception exception, string messageTemplate, params object?[] propertyValues)
+    {
+        LogError(LogTypeEnum.Exception, exception, messageTemplate, propertyValues);
+    }
+
+    public void LogError(string messageTemplate, params object?[] propertyValues)
+    {
+        LogError(LogTypeEnum.Application, null, messageTemplate, propertyValues);
+    }
+
+    public void LogDebug(LogTypeEnum logTypeEnum, string messageTemplate, params object?[] propertyValues)
+    {
+        using var scope = _logger.BeginScope(new Dictionary<string, object> { ["LogType"] = logTypeEnum.ToString() });
+        _logger.LogDebug(messageTemplate, propertyValues);
+    }
+
+    public void LogDebug(string messageTemplate, params object?[] propertyValues)
+    {
+        LogDebug(LogTypeEnum.Application, messageTemplate, propertyValues);
+    }
+}

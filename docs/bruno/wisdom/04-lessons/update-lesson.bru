@@ -1,0 +1,24 @@
+meta {
+  name: Update Lesson
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{baseUrl}}/api/courses/{{courseId}}/lessons/{{lessonId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Updated Lesson",
+    "description": "Updated description",
+    "position": 1,
+    "isPreview": true
+  }
+}

@@ -1,0 +1,11 @@
+meta {
+  name: Get Lesson Media
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/media/lesson/{{lessonId}}
+  body: none
+  auth: none
+}

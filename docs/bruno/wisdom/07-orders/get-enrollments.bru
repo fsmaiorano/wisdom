@@ -1,0 +1,15 @@
+meta {
+  name: Get Enrollments
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/orders/enrollments
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

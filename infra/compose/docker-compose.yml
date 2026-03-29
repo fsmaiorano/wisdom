@@ -1,0 +1,316 @@
+services:
+  keycloakdb:
+    image: postgres:17-alpine
+    container_name: postgres-keycloak
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: KeycloakDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5400:5432"
+    volumes:
+      - keycloakdb-data:/var/lib/postgresql/data
+      - ../keycloak/init-keycloak-db.sh:/docker-entrypoint-initdb.d/init-keycloak-db.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d KeycloakDb || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  userdb:
+    image: postgres:17-alpine
+    container_name: postgres-user
+    environment:
+      POSTGRES_DB: UserDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5401:5432"
+    depends_on:
+      - keycloakdb
+    volumes:
+      - userdb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d UserDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  coursedb:
+    image: postgres:17-alpine
+    container_name: postgres-course
+    environment:
+      POSTGRES_DB: CourseDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5402:5432"
+    depends_on:
+      - keycloakdb
+      - userdb
+    volumes:
+      - coursedb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d CourseDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  mediadb:
+    image: postgres:17-alpine
+    container_name: postgres-media
+    environment:
+      POSTGRES_DB: MediaDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5404:5432"
+    depends_on:
+      - keycloakdb
+    volumes:
+      - mediadb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d MediaDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  orderdb:
+    image: postgres:17-alpine
+    container_name: postgres-order
+    environment:
+      POSTGRES_DB: OrderDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5405:5432"
+    depends_on:
+      - keycloakdb
+    volumes:
+      - orderdb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d OrderDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  learningdb:
+    image: postgres:17-alpine
+    container_name: postgres-learning
+    environment:
+      POSTGRES_DB: LearningDb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5403:5432"
+    depends_on:
+      - keycloakdb
+    volumes:
+      - learningdb-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d LearningDb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.1
+    container_name: keycloak
+    restart: unless-stopped
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloakdb:5432/KeycloakDb
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_DB_SCHEMA: public
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_HOSTNAME_URL: "http://localhost:8180"
+    ports:
+      - "8180:8080"
+    volumes:
+      - ../keycloak:/opt/keycloak/data/import
+    depends_on:
+      keycloakdb:
+        condition: service_healthy
+    healthcheck:
+      test:
+        ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q UP <&3"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  seq:
+    image: datalust/seq:latest
+    container_name: seq
+    environment:
+      ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_ADMINPASSWORD: admin
+    ports:
+      - "5500:80"   # Seq UI + ingestion API
+    volumes:
+      - seq-data:/data
+    restart: unless-stopped
+
+  # ── Application Services ────────────────────────────────────────────────────
+
+  wisdom-user-api:
+    build:
+      context: ../../dotnet
+      dockerfile: Wisdom.User/Wisdom.User.Api/Dockerfile
+    container_name: wisdom-user-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6006:8080"
+    depends_on:
+      userdb:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wisdom-course-api:
+    build:
+      context: ../../dotnet
+      dockerfile: Wisdom.Course/Wisdom.Course.Api/Dockerfile
+    container_name: wisdom-course-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6007:8080"
+    depends_on:
+      coursedb:
+        condition: service_healthy
+      mediadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wisdom-media-api:
+    build:
+      context: ../../dotnet
+      dockerfile: Wisdom.Media/Wisdom.Media.Api/Dockerfile
+    container_name: wisdom-media-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6008:8080"
+    depends_on:
+      mediadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wisdom-order-api:
+    build:
+      context: ../../dotnet
+      dockerfile: Wisdom.Order/Wisdom.Order.Api/Dockerfile
+    container_name: wisdom-order-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6009:8080"
+    depends_on:
+      orderdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wisdom-learning-api:
+    build:
+      context: ../../dotnet
+      dockerfile: Wisdom.Learning/Wisdom.Learning.Api/Dockerfile
+    container_name: wisdom-learning-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6010:8080"
+    depends_on:
+      learningdb:
+        condition: service_healthy
+    restart: unless-stopped
+
+  wisdom-bff:
+    build:
+      context: ../../dotnet
+      dockerfile: Wisdom.Bff/Dockerfile
+    container_name: wisdom-bff
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6000:8080"
+    depends_on:
+      - wisdom-user-api
+      - wisdom-course-api
+      - wisdom-media-api
+      - wisdom-order-api
+      - wisdom-learning-api
+      - keycloak
+    restart: unless-stopped
+
+volumes:
+  keycloakdb-data:
+  userdb-data:
+  coursedb-data:
+  mediadb-data:
+  orderdb-data:
+  learningdb-data:
+  minio-data:
+  rabbitmq-data:
+  seq-data:

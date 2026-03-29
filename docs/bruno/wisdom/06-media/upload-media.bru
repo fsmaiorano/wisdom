@@ -1,0 +1,25 @@
+meta {
+  name: Upload Media
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/media/upload?lessonId={{lessonId}}&type=Video
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:multipart-form {
+  file: @file()
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("mediaId", res.body.id);
+  }
+}

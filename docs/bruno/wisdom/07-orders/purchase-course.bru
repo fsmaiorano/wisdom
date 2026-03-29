@@ -1,0 +1,22 @@
+meta {
+  name: Purchase Course
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/api/orders/purchase
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "courseId": "{{courseId}}",
+    "price": 49.99
+  }
+}

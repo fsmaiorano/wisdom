@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0"/>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0"/>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Wisdom.Order.Infrastructure\Wisdom.Order.Infrastructure.csproj"/>
+    <ProjectReference Include="..\Wisdom.Order.Infrastructure.Migration\Wisdom.Order.Infrastructure.Migration.csproj"/>
+  </ItemGroup>
+</Project>

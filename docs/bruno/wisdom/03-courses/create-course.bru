@@ -1,0 +1,29 @@
+meta {
+  name: Create Course
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/api/courses
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "My Course",
+    "description": "Course description",
+    "price": 49.99
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("courseId", res.body.id);
+  }
+}

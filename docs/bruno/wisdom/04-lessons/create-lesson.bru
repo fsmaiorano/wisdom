@@ -1,0 +1,30 @@
+meta {
+  name: Create Lesson
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/courses/{{courseId}}/lessons
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "title": "Lesson 1",
+    "description": "Lesson description",
+    "position": 1,
+    "isPreview": false
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("lessonId", res.body.id);
+  }
+}

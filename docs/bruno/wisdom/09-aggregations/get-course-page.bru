@@ -1,0 +1,15 @@
+meta {
+  name: Get Course Page
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/bff/courses/{{courseId}}/page
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

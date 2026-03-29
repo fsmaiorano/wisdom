@@ -1,0 +1,15 @@
+meta {
+  name: Check Enrollment
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/orders/enrollments/{{courseId}}/check
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}

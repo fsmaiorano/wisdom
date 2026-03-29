@@ -1,0 +1,21 @@
+meta {
+  name: Update Media Status
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/api/media/{{mediaId}}/status
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
+
+body:json {
+  {
+    "status": "Ready"
+  }
+}

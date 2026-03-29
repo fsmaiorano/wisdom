@@ -1,0 +1,15 @@
+meta {
+  name: Get Progress by Lesson
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/progress/lesson/{{lessonId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{accessToken}}
+}
