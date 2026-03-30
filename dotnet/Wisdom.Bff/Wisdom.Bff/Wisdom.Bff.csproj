@@ -15,7 +15,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="../Wisdom.BuildingBlocks/Wisdom.BuildingBlocks.csproj" />
+        <ProjectReference Include="../../Wisdom.BuildingBlocks/Wisdom.BuildingBlocks.csproj" />
     </ItemGroup>
 
 </Project>

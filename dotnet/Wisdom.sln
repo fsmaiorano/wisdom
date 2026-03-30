@@ -80,13 +80,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Learning.UnitTests",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Learning.IntegrationTests", "Wisdom.Learning\Wisdom.Learning.IntegrationTests\Wisdom.Learning.IntegrationTests.csproj", "{BE38FDD5-DA99-40E5-988D-04A9F6CDF8FF}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bff", "Bff", "{F1A2B3C4-D5E6-7890-ABCD-EF1234567890}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bff", "Wisdom.Bff\Bff", "{F1A2B3C4-D5E6-7890-ABCD-EF1234567890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Bff", "Wisdom.Bff\Wisdom.Bff.csproj", "{A0B1C2D3-E4F5-6789-ABCD-EF0123456789}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Bff", "Wisdom.Bff\Wisdom.Bff\Wisdom.Bff.csproj", "{A0B1C2D3-E4F5-6789-ABCD-EF0123456789}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Bff.UnitTests", "Wisdom.Bff.UnitTests\Wisdom.Bff.UnitTests.csproj", "{B1C2D3E4-F5A6-7890-BCDE-F01234567891}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Bff.UnitTests", "Wisdom.Bff\Wisdom.Bff.UnitTests\Wisdom.Bff.UnitTests.csproj", "{B1C2D3E4-F5A6-7890-BCDE-F01234567891}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Bff.IntegrationTests", "Wisdom.Bff.IntegrationTests\Wisdom.Bff.IntegrationTests.csproj", "{C2D3E4F5-A6B7-8901-CDEF-012345678902}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Bff.IntegrationTests", "Wisdom.Bff\Wisdom.Bff.IntegrationTests\Wisdom.Bff.IntegrationTests.csproj", "{C2D3E4F5-A6B7-8901-CDEF-012345678902}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{E964E5EA-2B24-49AB-B65B-7A2C2C8078FC}"
 EndProject
