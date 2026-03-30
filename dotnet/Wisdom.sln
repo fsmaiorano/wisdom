@@ -96,7 +96,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C6CEFFA0
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Tests.Common", "Wisdom.Tests.Common\Wisdom.Tests.Common.csproj", "{1B8EBF2D-4D90-4A25-839D-29D6A13A087A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Simulator", "Tests\Wisdom.Simulator\Wisdom.Simulator.csproj", "{51DC4F1A-B01C-434A-8FCF-3F733841B745}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Wisdom.Simulator", "Wisdom.Simulator\Wisdom.Simulator.csproj", "{51DC4F1A-B01C-434A-8FCF-3F733841B745}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
