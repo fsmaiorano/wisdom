@@ -1,11 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using Minio;
 using Wisdom.BuildingBlocks.Auth;
-using Wisdom.BuildingBlocks.Events.DomainEvents;
-using Wisdom.BuildingBlocks.Events.DomainEvents.Interfaces;
-using Wisdom.BuildingBlocks.Events.Extensions;
-using Wisdom.BuildingBlocks.Events.Idempotency;
-using Wisdom.BuildingBlocks.Events.Outbox;
 using Wisdom.BuildingBlocks.Exceptions;
 using Wisdom.BuildingBlocks.Loggers;
 using Wisdom.BuildingBlocks.Middlewares;
@@ -16,15 +9,6 @@ using Wisdom.Course.Api.Endpoints;
 using Wisdom.Course.Application;
 using Wisdom.Course.Infrastructure;
 using Wisdom.Course.Infrastructure.Data;
-using Wisdom.Media.Application.EventHandlers;
-using Wisdom.Media.Application.Interfaces;
-using Wisdom.Media.Application.UseCases;
-using Wisdom.Media.Domain.Events;
-using Wisdom.Media.Domain.Repositories;
-using Wisdom.Media.Infrastructure.Data;
-using Wisdom.Media.Infrastructure.Repositories;
-using Wisdom.Media.Infrastructure.Services;
-using Wisdom.Media.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,32 +20,6 @@ builder.Services
     .AddInfrastructureServices(builder.Configuration)
     .AddCorrelationIdServices();
 
-// Media services — needed to upload lesson videos and publish MediaReadyDomainEvent
-builder.Services.AddEventBus(builder.Configuration);
-
-var mediaConnectionString = builder.Configuration.GetConnectionString("MediaConnection");
-builder.Services.AddOutbox<MediaDbContext>(builder.Configuration);
-builder.Services.AddIdempotency<MediaDbContext>();
-builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-builder.Services.AddScoped<IDomainEventHandler<MediaReadyDomainEvent>, MediaReadyDomainEventHandler>();
-
-builder.Services.AddDbContext<MediaDbContext>((sp, options) =>
-{
-    options.UseNpgsql(mediaConnectionString);
-    options.AddInterceptors(sp.GetRequiredService<ConvertDomainEventsToOutboxMessagesInterceptor>());
-});
-builder.Services.AddScoped<IMediaRepository, MediaRepository>();
-
-var minioSettings = builder.Configuration.GetSection("Minio").Get<MinioSettings>() ?? new MinioSettings();
-builder.Services.AddSingleton(minioSettings);
-builder.Services.AddMinio(c => c
-    .WithEndpoint(minioSettings.Endpoint)
-    .WithCredentials(minioSettings.AccessKey, minioSettings.SecretKey)
-    .WithSSL(minioSettings.UseSSL)
-    .Build());
-builder.Services.AddScoped<IMinioService, MinioService>();
-builder.Services.AddScoped<UploadMediaUseCase>();
-
 builder.Services.AddInternalAuth(builder.Configuration);
 
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();
@@ -72,7 +30,6 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 await app.InitialiseDatabaseAsync<CourseDbContext>();
-await app.InitialiseDatabaseAsync<MediaDbContext>();
 
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();

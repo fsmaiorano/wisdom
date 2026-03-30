@@ -16,6 +16,5 @@
   <ItemGroup>
     <ProjectReference Include="..\Wisdom.Course.Infrastructure\Wisdom.Course.Infrastructure.csproj"/>
     <ProjectReference Include="..\Wisdom.Course.Infrastructure.Migration\Wisdom.Course.Infrastructure.Migration.csproj"/>
-    <ProjectReference Include="..\..\Wisdom.Media\Wisdom.Media.Infrastructure\Wisdom.Media.Infrastructure.csproj"/>
   </ItemGroup>
 </Project>

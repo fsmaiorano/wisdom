@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Wisdom.Course.Application.Dtos;
+using Wisdom.Course.Application.Interfaces;
 using Wisdom.Course.Application.UseCases;
-using Wisdom.Media.Application.UseCases;
-using Wisdom.Media.Domain.Enums;
+
 namespace Wisdom.Course.Api.Endpoints;
 
 public static class LessonEndpoints
@@ -30,8 +30,8 @@ public static class LessonEndpoints
                 [FromForm] bool isPreview,
                 [FromForm] string? thumbnailUrl,
                 IFormFile? video,
-                CreateLessonUseCase createLessonUseCase,
-                UploadMediaUseCase uploadMediaUseCase,
+                [FromServices] CreateLessonUseCase createLessonUseCase,
+                [FromServices] IMediaApiClient mediaApiClient,
                 CancellationToken ct) =>
             {
                 var lessonResult = await createLessonUseCase.ExecuteAsync(
@@ -45,8 +45,8 @@ public static class LessonEndpoints
                 if (video is not null)
                 {
                     await using var stream = video.OpenReadStream();
-                    var mediaResult = await uploadMediaUseCase.ExecuteAsync(
-                        lesson.LessonId, MediaTypeEnum.Video, stream, video.FileName, video.ContentType, thumbnailUrl, ct);
+                    var mediaResult = await mediaApiClient.UploadAsync(
+                        lesson.LessonId, "Video", stream, video.FileName, video.ContentType, ct);
 
                     if (mediaResult.IsSuccess)
                         lesson = lesson with { MediaId = mediaResult.Data!.MediaId };
