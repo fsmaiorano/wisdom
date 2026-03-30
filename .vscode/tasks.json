@@ -1,0 +1,59 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build: Bff",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet/Wisdom.Bff/Wisdom.Bff/Wisdom.Bff.csproj"],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: User",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet/Wisdom.User/Wisdom.User.Api/Wisdom.User.Api.csproj"],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: Course",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet/Wisdom.Course/Wisdom.Course.Api/Wisdom.Course.Api.csproj"],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: Media",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet/Wisdom.Media/Wisdom.Media.Api/Wisdom.Media.Api.csproj"],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: Order",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet/Wisdom.Order/Wisdom.Order.Api/Wisdom.Order.Api.csproj"],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: Learning",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["build", "${workspaceFolder}/dotnet/Wisdom.Learning/Wisdom.Learning.Api/Wisdom.Learning.Api.csproj"],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
+    }
+  ]
+}

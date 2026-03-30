@@ -35,7 +35,11 @@ public class OutboxProcessor<TDbContext>(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unhandled error in OutboxProcessor");
+                logger.LogError(ex,
+                    "Unhandled error in OutboxProcessor<{DbContext}>. " +
+                    "Check that all migrations have been applied (OutboxMessages / ProcessedEvents tables). " +
+                    "Next retry in {Interval}s.",
+                    typeof(TDbContext).Name, settings.Value.IntervalSeconds);
             }
 
             await Task.Delay(interval, stoppingToken);

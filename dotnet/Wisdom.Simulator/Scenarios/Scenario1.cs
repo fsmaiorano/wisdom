@@ -38,7 +38,7 @@ public static class Scenario1
         AnsiConsole.MarkupLine($"  [green]✓[/] Course created (ID: {course!.CourseId})");
 
         // ── Discover mock videos ─────────────────────────────────────────────
-        var mockFiles = FindMockVideos();
+        var mockFiles = DataGenerator.FindMockVideos();
         if (mockFiles.Length > 0)
             AnsiConsole.MarkupLine($"[grey]→[/] Found [bold]{mockFiles.Length}[/] mock video(s) — will cycle through them per lesson");
         else
@@ -69,22 +69,6 @@ public static class Scenario1
 
         AnsiConsole.MarkupLine("");
         PrintSummaryTable(course, ctx.Lessons);
-    }
-
-    /// <summary>Walks up from the binary directory until a sibling "mocks/" folder is found.</summary>
-    private static string[] FindMockVideos()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null)
-        {
-            var mocks = Path.Combine(dir.FullName, "mocks");
-            if (Directory.Exists(mocks))
-                return Directory.GetFiles(mocks, "*.mkv", SearchOption.TopDirectoryOnly)
-                    .Order()
-                    .ToArray();
-            dir = dir.Parent;
-        }
-        return [];
     }
 
     private static void PrintSummaryTable(Models.CreateCourseResponse course, List<GetLessonResponse> lessons)

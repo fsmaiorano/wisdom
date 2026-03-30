@@ -29,11 +29,10 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+await app.InitialiseDatabaseAsync<OrderDbContext>();
+
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-    await app.InitialiseDatabaseAsync<OrderDbContext>();
-}
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>

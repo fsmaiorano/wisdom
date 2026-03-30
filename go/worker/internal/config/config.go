@@ -1,0 +1,49 @@
+package config
+
+import (
+	"log"
+	"os"
+	"path/filepath"
+
+	"github.com/joho/godotenv"
+)
+
+type Config struct {
+	RabbitURL          string
+	MinioURL           string
+	MinioUsername      string
+	MinioPassword      string
+	DBConnectionString string
+}
+
+func loadEnv() {
+	dir, _ := os.Getwd()
+	for {
+		candidate := filepath.Join(dir, ".env")
+		if _, err := os.Stat(candidate); err == nil {
+			if err := godotenv.Load(candidate); err != nil {
+				log.Printf("Warning: found %s but could not load it: %v", candidate, err)
+			} else {
+				log.Printf("Loaded env from %s", candidate)
+			}
+			return
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			log.Println("No .env file found, relying on environment variables")
+			return
+		}
+		dir = parent
+	}
+}
+
+func Load() *Config {
+	loadEnv()
+	return &Config{
+		RabbitURL:          os.Getenv("RABBITMQ_URL"),
+		MinioURL:           os.Getenv("MINIO_ENDPOINT"),
+		MinioUsername:      os.Getenv("MINIO_ACCESS_KEY"),
+		MinioPassword:      os.Getenv("MINIO_SECRET_KEY"),
+		DBConnectionString: os.Getenv("DB_CONN"),
+	}
+}

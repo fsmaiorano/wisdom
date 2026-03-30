@@ -29,11 +29,10 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+await app.InitialiseDatabaseAsync<LearningDbContext>();
+
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-    await app.InitialiseDatabaseAsync<LearningDbContext>();
-}
 
 app.UseSwagger();
 app.UseSwaggerUI(options =>

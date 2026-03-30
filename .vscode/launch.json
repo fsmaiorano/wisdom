@@ -1,0 +1,109 @@
+{
+  "version": "0.2.0",
+  "compounds": [
+    {
+      "name": "All Services",
+      "configurations": [
+        "Bff",
+        "User API",
+        "Course API",
+        "Media API",
+        "Order API",
+        "Learning API"
+      ],
+      "stopAll": true
+    }
+  ],
+  "configurations": [
+    {
+      "name": "Bff",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Bff",
+      "program": "${workspaceFolder}/dotnet/Wisdom.Bff/Wisdom.Bff/bin/Debug/net10.0/Wisdom.Bff.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.Bff/Wisdom.Bff",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5000"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "User API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: User",
+      "program": "${workspaceFolder}/dotnet/Wisdom.User/Wisdom.User.Api/bin/Debug/net10.0/Wisdom.User.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.User/Wisdom.User.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5006"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Course API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Course",
+      "program": "${workspaceFolder}/dotnet/Wisdom.Course/Wisdom.Course.Api/bin/Debug/net10.0/Wisdom.Course.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.Course/Wisdom.Course.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5007"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Media API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Media",
+      "program": "${workspaceFolder}/dotnet/Wisdom.Media/Wisdom.Media.Api/bin/Debug/net10.0/Wisdom.Media.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.Media/Wisdom.Media.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5008"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Order API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Order",
+      "program": "${workspaceFolder}/dotnet/Wisdom.Order/Wisdom.Order.Api/bin/Debug/net10.0/Wisdom.Order.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.Order/Wisdom.Order.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5009"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Learning API",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build: Learning",
+      "program": "${workspaceFolder}/dotnet/Wisdom.Learning/Wisdom.Learning.Api/bin/Debug/net10.0/Wisdom.Learning.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.Learning/Wisdom.Learning.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5010"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    }
+  ]
+}

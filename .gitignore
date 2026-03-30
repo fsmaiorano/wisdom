@@ -45,3 +45,7 @@ msbuild.wrn
 *.DotSettings.*
 mocks/*
 
+# Environment files
+.env
+.env.docker
+

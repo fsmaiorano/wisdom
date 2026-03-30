@@ -42,13 +42,25 @@ public static class Scenario5
         var course = await bff.CreateCourseAsync(courseReq, ct);
         AnsiConsole.MarkupLine($"  [green]✓[/] Course: [bold]{Markup.Escape(course!.Title)}[/] (ID: {course.CourseId})");
 
+        var mockFiles = DataGenerator.FindMockVideos();
+        if (mockFiles.Length > 0)
+            AnsiConsole.MarkupLine($"[grey]→[/] Found [bold]{mockFiles.Length}[/] mock video(s) — will cycle through them per lesson");
+        else
+            AnsiConsole.MarkupLine("[yellow]⚠[/]  No .mkv files found in mocks/ — lessons will be created without video");
+
         var lessons = new List<GetLessonResponse>();
+        AnsiConsole.MarkupLine($"[grey]→[/] Adding {settings.LessonsPerCourse} lessons...");
         for (int i = 1; i <= settings.LessonsPerCourse; i++)
         {
             var lessonReq = DataGenerator.FakeLesson(i);
-            var lesson = await bff.CreateLessonAsync(course.CourseId, lessonReq, ct);
+            var videoPath = mockFiles.Length > 0 ? mockFiles[(i - 1) % mockFiles.Length] : null;
+            var thumbnailUrl = DataGenerator.FakeThumbnailUrl();
+
+            var lesson = await bff.CreateLessonAsync(course.CourseId, lessonReq, videoPath, thumbnailUrl, ct);
             lessons.Add(lesson!);
-            AnsiConsole.MarkupLine($"  [green]✓[/] Lesson {i}: [italic]{Markup.Escape(lesson!.Title)}[/]");
+
+            var mediaTag = lesson!.MediaId.HasValue ? $" [blue]▶ media:{lesson.MediaId}[/]" : " [grey](no video)[/]";
+            AnsiConsole.MarkupLine($"    [green]+[/] [[{i}/{settings.LessonsPerCourse}]] [italic]{Markup.Escape(lesson.Title)}[/]{mediaTag}");
         }
 
         AnsiConsole.MarkupLine("[grey]→[/] Publishing course...");

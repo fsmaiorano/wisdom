@@ -7,14 +7,14 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-COPY ["Wisdom.BuildingBlocks/Wisdom.BuildingBlocks.csproj", "Wisdom.BuildingBlocks/"]
-COPY ["Wisdom.Bff/Wisdom.Bff.csproj",                       "Wisdom.Bff/"]
+COPY ["Wisdom.BuildingBlocks/Wisdom.BuildingBlocks.csproj",     "Wisdom.BuildingBlocks/"]
+COPY ["Wisdom.Bff/Wisdom.Bff/Wisdom.Bff.csproj",               "Wisdom.Bff/Wisdom.Bff/"]
 
-RUN dotnet restore "Wisdom.Bff/Wisdom.Bff.csproj"
+RUN dotnet restore "Wisdom.Bff/Wisdom.Bff/Wisdom.Bff.csproj"
 
 COPY . .
 
-RUN dotnet publish "Wisdom.Bff/Wisdom.Bff.csproj" \
+RUN dotnet publish "Wisdom.Bff/Wisdom.Bff/Wisdom.Bff.csproj" \
     -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final

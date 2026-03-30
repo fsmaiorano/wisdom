@@ -20,9 +20,20 @@ AnsiConsole.MarkupLine("");
 
 var settings = new SimulatorSettings();
 
-// All traffic goes through the BFF. Override with BASE_URL env var when targeting Docker.
-// Example: BASE_URL=http://localhost:6000 dotnet run
-settings.BaseUrl = Environment.GetEnvironmentVariable("BASE_URL") ?? settings.BaseUrl;
+var envOverride = Environment.GetEnvironmentVariable("BASE_URL");
+if (envOverride is not null)
+{
+    settings.BaseUrl = envOverride;
+}
+else
+{
+    var env = AnsiConsole.Prompt(
+        new SelectionPrompt<string>()
+            .Title("[bold]Select environment:[/]")
+            .AddChoices(["Local (http://localhost:5000)", "Docker (http://localhost:6000)"]));
+
+    settings.BaseUrl = env.StartsWith("Docker") ? "http://localhost:6000" : "http://localhost:5000";
+}
 
 PrintApiUrls(settings);
 AnsiConsole.MarkupLine("");
@@ -37,7 +48,7 @@ while (!cts.Token.IsCancellationRequested)
                 "2 — Create course, lessons and buy",
                 "3 — Create course, lessons, X users buy and watch (loop)",
                 "4 — Create course, X users buy and watch with random progression",
-                "5 — Like 4 but shows BFF aggregation (Dashboard & CoursePage)",
+                "5 — Create course, X users buy, watch and shows BFF aggregation",
                 "Exit"
             ]));
 

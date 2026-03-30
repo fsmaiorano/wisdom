@@ -218,6 +218,8 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   wisdom-course-api:
@@ -237,6 +239,10 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   wisdom-media-api:
@@ -254,6 +260,10 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   wisdom-order-api:
@@ -268,6 +278,10 @@ services:
       - "6009:8080"
     depends_on:
       orderdb:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
     restart: unless-stopped
 
@@ -284,12 +298,16 @@ services:
     depends_on:
       learningdb:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     restart: unless-stopped
 
   wisdom-bff:
     build:
       context: ../../dotnet
-      dockerfile: Wisdom.Bff/Dockerfile
+      dockerfile: Wisdom.Bff/Wisdom.Bff/Dockerfile
     container_name: wisdom-bff
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
@@ -303,6 +321,22 @@ services:
       - wisdom-order-api
       - wisdom-learning-api
       - keycloak
+    restart: unless-stopped
+
+  wisdom-media-worker:
+    build:
+      context: ../../go/worker
+      dockerfile: Dockerfile
+    container_name: wisdom-media-worker
+    env_file:
+      - ../../go/worker/.env.docker
+    depends_on:
+      mediadb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

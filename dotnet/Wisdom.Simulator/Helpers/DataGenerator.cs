@@ -35,4 +35,23 @@ public static class DataGenerator
 
     public static int FakeWatchedSeconds(int maxSeconds = 600)
         => Faker.Random.Int(30, maxSeconds);
+
+    /// <summary>
+    /// Walks up from the binary directory until a sibling "mocks/" folder is found,
+    /// then returns all .mkv files inside it sorted by name.
+    /// </summary>
+    public static string[] FindMockVideos()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var mocks = Path.Combine(dir.FullName, "mocks");
+            if (Directory.Exists(mocks))
+                return Directory.GetFiles(mocks, "*.mkv", SearchOption.TopDirectoryOnly)
+                    .Order()
+                    .ToArray();
+            dir = dir.Parent;
+        }
+        return [];
+    }
 }
