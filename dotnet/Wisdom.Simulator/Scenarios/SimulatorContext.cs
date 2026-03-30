@@ -14,6 +14,7 @@ public class SimulatorContext
     public SimulatorSettings Settings { get; }
     public UserApiClient UserClient { get; }
     public CourseApiClient CourseClient { get; }
+    public MediaApiClient MediaClient { get; }
     public OrderApiClient OrderClient { get; }
     public LearningApiClient LearningClient { get; }
 
@@ -29,6 +30,7 @@ public class SimulatorContext
         Settings = settings;
         UserClient     = new UserApiClient(settings.BaseUrl);
         CourseClient   = new CourseApiClient(settings.BaseUrl);
+        MediaClient    = new MediaApiClient(settings.BaseUrl);
         OrderClient    = new OrderApiClient(settings.BaseUrl);
         LearningClient = new LearningApiClient(settings.BaseUrl);
     }

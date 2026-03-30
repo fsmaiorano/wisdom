@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Wisdom.Course.Application.Dtos;
 using Wisdom.Course.IntegrationTests.Fixtures;
@@ -22,28 +21,10 @@ public class LessonTests(CourseApiFixture fixture) : IClassFixture<CourseApiFixt
         return created!.CourseId;
     }
 
-    private async Task<HttpResponseMessage> CreateLessonFormAsync(
-        Guid courseId, string title, string description, int position, bool isPreview, string token,
-        Stream? videoStream = null, string? videoFileName = null)
-    {
-        var client = fixture.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-        var form = new MultipartFormDataContent();
-        form.Add(new StringContent(title), "title");
-        form.Add(new StringContent(description), "description");
-        form.Add(new StringContent(position.ToString()), "position");
-        form.Add(new StringContent(isPreview.ToString().ToLower()), "isPreview");
-
-        if (videoStream is not null && videoFileName is not null)
-        {
-            var fileContent = new StreamContent(videoStream);
-            fileContent.Headers.ContentType = new MediaTypeHeaderValue("video/x-matroska");
-            form.Add(fileContent, "video", videoFileName);
-        }
-
-        return await client.PostAsync($"/api/courses/{courseId}/lessons", form);
-    }
+    private Task<HttpResponseMessage> CreateLessonAsync(
+        Guid courseId, string title, string description, int position, bool isPreview, string token)
+        => fixture.DoPost($"/api/courses/{courseId}/lessons",
+            new CreateLessonRequest(title, description, position, isPreview), token);
 
     [Fact]
     public async Task CreateLesson_WithValidRequest_Returns201()
@@ -53,7 +34,7 @@ public class LessonTests(CourseApiFixture fixture) : IClassFixture<CourseApiFixt
         var title = BogusFactory.Faker.Lorem.Sentence(3);
         var description = BogusFactory.Faker.Lorem.Paragraph();
 
-        var response = await CreateLessonFormAsync(courseId, title, description, 1, true, token);
+        var response = await CreateLessonAsync(courseId, title, description, 1, true, token);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
@@ -68,39 +49,13 @@ public class LessonTests(CourseApiFixture fixture) : IClassFixture<CourseApiFixt
     }
 
     [Fact]
-    public async Task CreateLesson_WithVideo_Returns201WithMediaId()
-    {
-        var token = NewTeacherToken();
-        var courseId = await CreateCourseAsync(token);
-
-        var videoBytes = new byte[] { 0x1A, 0x45, 0xDF, 0xA3 }; // MKV magic bytes
-        using var videoStream = new MemoryStream(videoBytes);
-
-        var response = await CreateLessonFormAsync(
-            courseId,
-            BogusFactory.Faker.Lorem.Sentence(3),
-            BogusFactory.Faker.Lorem.Paragraph(),
-            1, false, token, videoStream, "lesson.mkv");
-
-        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-
-        var body = await response.Content.ReadFromJsonAsync<GetLessonResponse>();
-        Assert.NotNull(body);
-        Assert.NotNull(body.MediaId);
-        Assert.NotEqual(Guid.Empty, body.MediaId!.Value);
-    }
-
-    [Fact]
     public async Task UpdateLesson_WithValidRequest_Returns200WithUpdatedData()
     {
         var token = NewTeacherToken();
         var courseId = await CreateCourseAsync(token);
 
-        var createResponse = await CreateLessonFormAsync(
-            courseId,
-            BogusFactory.Faker.Lorem.Sentence(3),
-            BogusFactory.Faker.Lorem.Paragraph(),
-            1, true, token);
+        var createResponse = await CreateLessonAsync(courseId,
+            BogusFactory.Faker.Lorem.Sentence(3), BogusFactory.Faker.Lorem.Paragraph(), 1, true, token);
         var created = await createResponse.Content.ReadFromJsonAsync<GetLessonResponse>();
         Assert.NotNull(created);
 
@@ -129,11 +84,8 @@ public class LessonTests(CourseApiFixture fixture) : IClassFixture<CourseApiFixt
         var token = NewTeacherToken();
         var courseId = await CreateCourseAsync(token);
 
-        var createResponse = await CreateLessonFormAsync(
-            courseId,
-            BogusFactory.Faker.Lorem.Sentence(3),
-            BogusFactory.Faker.Lorem.Paragraph(),
-            1, false, token);
+        var createResponse = await CreateLessonAsync(courseId,
+            BogusFactory.Faker.Lorem.Sentence(3), BogusFactory.Faker.Lorem.Paragraph(), 1, false, token);
         var created = await createResponse.Content.ReadFromJsonAsync<GetLessonResponse>();
         Assert.NotNull(created);
 
@@ -149,9 +101,9 @@ public class LessonTests(CourseApiFixture fixture) : IClassFixture<CourseApiFixt
         var token = NewTeacherToken();
         var courseId = await CreateCourseAsync(token);
 
-        await CreateLessonFormAsync(courseId, BogusFactory.Faker.Lorem.Sentence(3),
+        await CreateLessonAsync(courseId, BogusFactory.Faker.Lorem.Sentence(3),
             BogusFactory.Faker.Lorem.Paragraph(), 1, true, token);
-        await CreateLessonFormAsync(courseId, BogusFactory.Faker.Lorem.Sentence(3),
+        await CreateLessonAsync(courseId, BogusFactory.Faker.Lorem.Sentence(3),
             BogusFactory.Faker.Lorem.Paragraph(), 2, false, token);
 
         var response = await fixture.DoGet($"/api/courses/{courseId}/lessons");

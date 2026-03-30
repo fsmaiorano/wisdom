@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Wisdom.Course.Application.Dtos;
-using Wisdom.Course.Application.Interfaces;
 using Wisdom.Course.Application.UseCases;
 
 namespace Wisdom.Course.Api.Endpoints;
@@ -24,39 +23,17 @@ public static class LessonEndpoints
 
         group.MapPost("/", async (
                 Guid courseId,
-                [FromForm] string title,
-                [FromForm] string description,
-                [FromForm] int position,
-                [FromForm] bool isPreview,
-                [FromForm] string? thumbnailUrl,
-                IFormFile? video,
-                [FromServices] CreateLessonUseCase createLessonUseCase,
-                [FromServices] IMediaApiClient mediaApiClient,
+                CreateLessonRequest request,
+                CreateLessonUseCase useCase,
                 CancellationToken ct) =>
             {
-                var lessonResult = await createLessonUseCase.ExecuteAsync(
-                    courseId, new CreateLessonRequest(title, description, position, isPreview), ct);
-
-                if (!lessonResult.IsSuccess)
-                    return Results.BadRequest(new { error = lessonResult.Error });
-
-                var lesson = lessonResult.Data!;
-
-                if (video is not null)
-                {
-                    await using var stream = video.OpenReadStream();
-                    var mediaResult = await mediaApiClient.UploadAsync(
-                        lesson.LessonId, "Video", stream, video.FileName, video.ContentType, ct);
-
-                    if (mediaResult.IsSuccess)
-                        lesson = lesson with { MediaId = mediaResult.Data!.MediaId };
-                }
-
-                return Results.Created($"/api/courses/{courseId}/lessons/{lesson.LessonId}", lesson);
+                var result = await useCase.ExecuteAsync(courseId, request, ct);
+                return result.IsSuccess
+                    ? Results.Created($"/api/courses/{courseId}/lessons/{result.Data!.LessonId}", result.Data)
+                    : Results.BadRequest(new { error = result.Error });
             })
         .WithName("CreateLesson")
         .RequireAuthorization()
-        .DisableAntiforgery()
         .Produces<GetLessonResponse>(StatusCodes.Status201Created)
         .ProducesProblem(StatusCodes.Status400BadRequest);
 

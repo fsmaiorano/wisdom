@@ -28,6 +28,7 @@ public static class Scenario1
         ctx.TeacherToken = loginResp;
         ctx.UserClient.SetBearerToken(loginResp!.AccessToken);
         ctx.CourseClient.SetBearerToken(loginResp.AccessToken);
+        ctx.MediaClient.SetBearerToken(loginResp.AccessToken);
         AnsiConsole.MarkupLine($"  [green]✓[/] Token obtained (expires in {loginResp.ExpiresIn}s)");
 
         // ── Create course ────────────────────────────────────────────────────
@@ -49,16 +50,32 @@ public static class Scenario1
         for (int i = 1; i <= ctx.Settings.LessonsPerCourse; i++)
         {
             var lessonReq = DataGenerator.FakeLesson(i);
-            var videoPath = mockFiles.Length > 0 ? mockFiles[(i - 1) % mockFiles.Length] : null;
-            var thumbnailUrl = DataGenerator.FakeThumbnailUrl();
 
-            var lesson = await ctx.CourseClient.CreateLessonAsync(course.CourseId, lessonReq, videoPath, thumbnailUrl, ct);
+            // Step 1: create the lesson (Course API — no media)
+            var lesson = await ctx.CourseClient.CreateLessonAsync(course.CourseId, lessonReq, ct);
+
+            // Step 2: upload media separately (Media API via BFF proxy)
+            var videoPath = mockFiles.Length > 0 ? mockFiles[(i - 1) % mockFiles.Length] : null;
+            if (videoPath is not null)
+            {
+                try
+                {
+                    var media = await ctx.MediaClient.UploadVideoAsync(lesson!.LessonId, videoPath, ct);
+                    if (media is not null)
+                        lesson = lesson with { MediaId = media.MediaId };
+                }
+                catch (HttpRequestException ex)
+                {
+                    AnsiConsole.MarkupLine($"    [yellow]⚠[/]  Media upload failed for lesson {i}: {Markup.Escape(ex.Message)}");
+                }
+            }
+
             ctx.Lessons.Add(lesson!);
 
             var previewTag = lesson!.IsPreview ? " [grey](preview)[/]" : "";
             var mediaTag = lesson.MediaId.HasValue
                 ? $" [blue]▶ media:{lesson.MediaId}[/]"
-                : " [grey](no video)[/]";
+                : " [grey](no media)[/]";
             AnsiConsole.MarkupLine($"    [green]+[/] [[{i}/{ctx.Settings.LessonsPerCourse}]] [italic]{Markup.Escape(lesson.Title)}[/]{previewTag}{mediaTag}");
         }
 
