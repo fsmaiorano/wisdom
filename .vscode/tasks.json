@@ -1,6 +1,7 @@
 {
   "version": "2.0.0",
   "tasks": [
+    // ── .NET builds ──────────────────────────────────────────────────────────
     {
       "label": "build: Bff",
       "command": "dotnet",
@@ -54,6 +55,20 @@
       "group": "build",
       "presentation": { "reveal": "silent" },
       "problemMatcher": "$msCompile"
+    },
+
+    // ── Go builds ────────────────────────────────────────────────────────────
+    {
+      "label": "build: Go Worker",
+      "command": "go",
+      "type": "process",
+      "args": ["build", "./cmd/worker"],
+      "options": {
+        "cwd": "${workspaceFolder}/go/worker"
+      },
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$go"
     }
   ]
 }

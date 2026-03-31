@@ -9,12 +9,26 @@
         "Course API",
         "Media API",
         "Order API",
+        "Learning API",
+        "Go Worker"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": ".NET Only",
+      "configurations": [
+        "Bff",
+        "User API",
+        "Course API",
+        "Media API",
+        "Order API",
         "Learning API"
       ],
       "stopAll": true
     }
   ],
   "configurations": [
+    // ── .NET services ──────────────────────────────────────────────────────
     {
       "name": "Bff",
       "type": "coreclr",
@@ -104,6 +118,30 @@
       },
       "stopAtEntry": false,
       "console": "internalConsole"
+    },
+
+    // ── Go Worker ──────────────────────────────────────────────────────────
+    {
+      "name": "Go Worker",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "preLaunchTask": "build: Go Worker",
+      "program": "${workspaceFolder}/go/worker/cmd/worker",
+      "cwd": "${workspaceFolder}/go/worker",
+      "envFile": "${workspaceFolder}/go/worker/.env",
+      "showLog": true
+    },
+    {
+      "name": "Go Worker (docker env)",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "preLaunchTask": "build: Go Worker",
+      "program": "${workspaceFolder}/go/worker/cmd/worker",
+      "cwd": "${workspaceFolder}/go/worker",
+      "envFile": "${workspaceFolder}/go/worker/.env.docker",
+      "showLog": true
     }
   ]
 }
