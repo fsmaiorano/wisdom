@@ -26,31 +26,21 @@ public class BffApiClient(string baseUrl) : ApiClientBase(baseUrl)
     public async Task<GetLessonResponse?> CreateLessonAsync(
         Guid courseId, CreateLessonRequest request, string? videoFilePath = null, string? thumbnailUrl = null, CancellationToken ct = default)
     {
-        var form = new MultipartFormDataContent();
-        form.Add(new StringContent(request.Title),                           "title");
-        form.Add(new StringContent(request.Description),                     "description");
-        form.Add(new StringContent(request.Position.ToString()),             "position");
-        form.Add(new StringContent(request.IsPreview.ToString().ToLower()),  "isPreview");
-        if (thumbnailUrl is not null)
-            form.Add(new StringContent(thumbnailUrl), "thumbnailUrl");
+        var lesson = await PostAsync<GetLessonResponse>($"/api/courses/{courseId}/lessons", request, ct);
 
-        FileStream? fileStream = null;
-        if (videoFilePath is not null && File.Exists(videoFilePath))
+        if (lesson is not null && videoFilePath is not null && File.Exists(videoFilePath))
         {
-            fileStream = File.OpenRead(videoFilePath);
+            using var fileStream = File.OpenRead(videoFilePath);
             var fileContent = new StreamContent(fileStream);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue("video/x-matroska");
-            form.Add(fileContent, "video", Path.GetFileName(videoFilePath));
+
+            var form = new MultipartFormDataContent();
+            form.Add(fileContent, "file", Path.GetFileName(videoFilePath));
+
+            await PostMultipartAsync<object>($"/api/media/upload?lessonId={lesson.LessonId}&type=Video", form, ct);
         }
 
-        try
-        {
-            return await PostMultipartAsync<GetLessonResponse>($"/api/courses/{courseId}/lessons", form, ct);
-        }
-        finally
-        {
-            fileStream?.Dispose();
-        }
+        return lesson;
     }
 
     public Task<GetCourseResponse?> PublishCourseAsync(Guid courseId, bool publish, CancellationToken ct = default)
