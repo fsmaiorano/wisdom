@@ -2,8 +2,10 @@ package consumer
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"wisdom-worker/internal/models"
 
@@ -11,16 +13,19 @@ import (
 )
 
 const (
-	exchange  = "wisdom.MediaReadyIntegrationEvent"
-	queueName = "wisdom.MediaReadyIntegrationEvent.GoWorker"
-	dlxName   = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlx"
-	dlqName   = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlq"
-	dlqTTLMs  = int32(604_800_000) // 7 days
-	prefetch  = 10
+	exchange     = "wisdom.MediaReadyIntegrationEvent"
+	queueName    = "wisdom.MediaReadyIntegrationEvent.GoWorker"
+	dlxName      = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlx"
+	dlqName      = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlq"
+	dlqTTLMs     = int32(604_800_000) // 7 days
+	pollInterval = 5 * time.Second
 )
 
 type Handler func(event models.MediaReadyIntegrationEvent)
 
+// StartConsumer connects, declares the full topology, then polls the queue every
+// 5 seconds via Basic.Get. Returns nil on clean disconnect so the caller can
+// reconnect; returns an error on setup or channel failure.
 func StartConsumer(url string, handler Handler) error {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -34,38 +39,47 @@ func StartConsumer(url string, handler Handler) error {
 	}
 	defer ch.Close()
 
-	if err := ch.Qos(prefetch, 0, false); err != nil {
-		return fmt.Errorf("qos: %w", err)
-	}
-
-	msgs, err := ch.Consume(queueName, "", false, false, false, false, nil)
-	if err != nil {
-		return fmt.Errorf("consume: %w", err)
-	}
-
 	connClose := conn.NotifyClose(make(chan *amqp.Error, 1))
 	chClose := ch.NotifyClose(make(chan *amqp.Error, 1))
 
-	log.Println("Waiting for messages on", queueName)
+	log.Printf("Polling %s every %s", queueName, pollInterval)
+
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
 
 	for {
 		select {
-		case msg, ok := <-msgs:
-			if !ok {
-				return nil // channel closed by broker — caller reconnects
+		case <-ticker.C:
+			if err := drainQueue(ch, handler); err != nil {
+				return err
 			}
-			processMessage(msg, handler)
-		case err := <-chClose:
-			if err != nil {
-				return fmt.Errorf("channel closed: %w", err)
+		case amqpErr := <-chClose:
+			if amqpErr != nil {
+				return fmt.Errorf("channel closed: %w", amqpErr)
 			}
 			return nil
-		case err := <-connClose:
-			if err != nil {
-				return fmt.Errorf("connection closed: %w", err)
+		case amqpErr := <-connClose:
+			if amqpErr != nil {
+				return fmt.Errorf("connection closed: %w", amqpErr)
 			}
 			return nil
 		}
+	}
+}
+
+// drainQueue pulls all available messages in a single poll cycle using Basic.Get.
+// Loops until the queue is empty (ok=false) or an error occurs.
+func drainQueue(ch *amqp.Channel, handler Handler) error {
+	for {
+		msg, ok, err := ch.Get(queueName, false /* autoAck */)
+		if err != nil {
+			return fmt.Errorf("get: %w", err)
+		}
+		if !ok {
+			log.Printf("Queue %s checked — empty", queueName)
+			return nil
+		}
+		processMessage(msg, handler)
 	}
 }
 
@@ -86,7 +100,7 @@ func setupChannel(conn *amqp.Connection) (*amqp.Channel, error) {
 
 	if err := declareTopology(ch); err == nil {
 		return ch, nil
-	} else if amqpErr, ok := err.(*amqp.Error); !ok || amqpErr.Code != amqp.PreconditionFailed {
+	} else if amqpErr := (*amqp.Error)(nil); !errors.As(err, &amqpErr) || amqpErr.Code != amqp.PreconditionFailed {
 		ch.Close()
 		return nil, err
 	}
