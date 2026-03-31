@@ -23,14 +23,17 @@ public class BffApiClient(string baseUrl) : ApiClientBase(baseUrl)
     public Task<CreateCourseResponse?> CreateCourseAsync(CreateCourseRequest request, CancellationToken ct = default)
         => PostAsync<CreateCourseResponse>("/api/courses", request, ct);
 
-    public async Task<GetLessonResponse?> CreateLessonAsync(
+    public async Task<(GetLessonResponse? Lesson, string? UploadError)> CreateLessonAsync(
         Guid courseId, CreateLessonRequest request, string? videoFilePath = null, string? thumbnailUrl = null, CancellationToken ct = default)
     {
         var lesson = await PostAsync<GetLessonResponse>($"/api/courses/{courseId}/lessons", request, ct);
 
-        if (lesson is not null && videoFilePath is not null && File.Exists(videoFilePath))
+        if (lesson is null || videoFilePath is null || !File.Exists(videoFilePath))
+            return (lesson, null);
+
+        try
         {
-            using var fileStream = File.OpenRead(videoFilePath);
+            await using var fileStream = File.OpenRead(videoFilePath);
             var fileContent = new StreamContent(fileStream);
             fileContent.Headers.ContentType = new MediaTypeHeaderValue("video/x-matroska");
 
@@ -38,9 +41,12 @@ public class BffApiClient(string baseUrl) : ApiClientBase(baseUrl)
             form.Add(fileContent, "file", Path.GetFileName(videoFilePath));
 
             await PostMultipartAsync<object>($"/api/media/upload?lessonId={lesson.LessonId}&type=Video", form, ct);
+            return (lesson, null);
         }
-
-        return lesson;
+        catch (HttpRequestException ex)
+        {
+            return (lesson, ex.Message);
+        }
     }
 
     public Task<GetCourseResponse?> PublishCourseAsync(Guid courseId, bool publish, CancellationToken ct = default)

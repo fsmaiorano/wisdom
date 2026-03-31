@@ -56,11 +56,18 @@ public static class Scenario5
             var videoPath = mockFiles.Length > 0 ? mockFiles[(i - 1) % mockFiles.Length] : null;
             var thumbnailUrl = DataGenerator.FakeThumbnailUrl();
 
-            var lesson = await bff.CreateLessonAsync(course.CourseId, lessonReq, videoPath, thumbnailUrl, ct);
+            var (lesson, uploadError) = await bff.CreateLessonAsync(course.CourseId, lessonReq, videoPath, thumbnailUrl, ct);
             lessons.Add(lesson!);
 
-            var mediaTag = lesson!.MediaId.HasValue ? $" [blue]▶ media:{lesson.MediaId}[/]" : " [grey](no video)[/]";
-            AnsiConsole.MarkupLine($"    [green]+[/] [[{i}/{settings.LessonsPerCourse}]] [italic]{Markup.Escape(lesson.Title)}[/]{mediaTag}");
+            string mediaTag;
+            if (uploadError is not null)
+                mediaTag = $" [yellow]⚠ upload: {Markup.Escape(uploadError)}[/]";
+            else if (lesson!.MediaId.HasValue)
+                mediaTag = $" [blue]▶ media:{lesson.MediaId}[/]";
+            else
+                mediaTag = " [grey](no video)[/]";
+
+            AnsiConsole.MarkupLine($"    [green]+[/] [[{i}/{settings.LessonsPerCourse}]] [italic]{Markup.Escape(lesson!.Title)}[/]{mediaTag}");
         }
 
         AnsiConsole.MarkupLine("[grey]→[/] Publishing course...");
