@@ -13,7 +13,7 @@ AnsiConsole.Clear();
 AnsiConsole.Write(
     new FigletText("Wisdom")
         .Centered()
-        .Color(Color.Gold1));
+        .Color(Color.Gold3_1));
 
 AnsiConsole.Write(new Rule("[grey]System Simulator[/]").RuleStyle("grey"));
 AnsiConsole.MarkupLine("");
