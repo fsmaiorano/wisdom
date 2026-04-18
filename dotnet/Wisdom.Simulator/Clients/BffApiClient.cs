@@ -26,7 +26,7 @@ public class BffApiClient(string baseUrl) : ApiClientBase(baseUrl)
     public async Task<(GetLessonResponse? Lesson, string? UploadError)> CreateLessonAsync(
         Guid courseId, CreateLessonRequest request, string? videoFilePath = null, string? thumbnailUrl = null, CancellationToken ct = default)
     {
-        var lesson = await PostAsync<GetLessonResponse>($"/api/courses/{courseId}/lessons", request, ct);
+        var lesson = await PostAsyncWithMultipartFallback<GetLessonResponse>($"/api/courses/{courseId}/lessons", request, ct);
 
         if (lesson is null || videoFilePath is null || !File.Exists(videoFilePath))
             return (lesson, null);

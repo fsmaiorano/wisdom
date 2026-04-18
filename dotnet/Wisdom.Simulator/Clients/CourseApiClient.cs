@@ -8,7 +8,7 @@ public class CourseApiClient(string baseUrl) : ApiClientBase(baseUrl)
         => PostAsync<CreateCourseResponse>("/api/courses", request, ct);
 
     public Task<GetLessonResponse?> CreateLessonAsync(Guid courseId, CreateLessonRequest request, CancellationToken ct = default)
-        => PostAsync<GetLessonResponse>($"/api/courses/{courseId}/lessons", request, ct);
+        => PostAsyncWithMultipartFallback<GetLessonResponse>($"/api/courses/{courseId}/lessons", request, ct);
 
     public Task<GetCourseResponse?> PublishCourseAsync(Guid courseId, bool publish, CancellationToken ct = default)
         => PatchAsync<GetCourseResponse>($"/api/courses/{courseId}/publish", new PublishCourseRequest(publish), ct);
