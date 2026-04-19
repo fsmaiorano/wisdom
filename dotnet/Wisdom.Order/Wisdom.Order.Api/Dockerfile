@@ -18,6 +18,8 @@ RUN dotnet restore "Wisdom.Order/Wisdom.Order.Api/Wisdom.Order.Api.csproj"
 
 COPY . .
 
+RUN find /src -name "*.csproj" -not -path "*/obj/*" | xargs -I{} dirname {} | sort -u | xargs -I{} mkdir -p {}/bin/Debug
+
 RUN dotnet publish "Wisdom.Order/Wisdom.Order.Api/Wisdom.Order.Api.csproj" \
     -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 

@@ -22,13 +22,16 @@ public class UploadMediaUseCaseTests
     public async Task ExecuteAsync_WithValidRequest_UploadsToMinio()
     {
         var lessonId = BogusFactory.NewGuid();
+        var courseId = BogusFactory.NewGuid();
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        await useCase.ExecuteAsync(lessonId, MediaTypeEnum.Video, stream, "video.mp4", "video/mp4");
+        await useCase.ExecuteAsync(lessonId, courseId, MediaTypeEnum.Video, stream, "video.mp4", "video/mp4");
 
         Assert.Equal(1, _minio.UploadCallCount);
         Assert.Equal("wisdom-media", _minio.LastBucketName);
+        Assert.Contains("media-raw", _minio.LastObjectName);
+        Assert.Contains(courseId.ToString(), _minio.LastObjectName);
         Assert.Contains("video.mp4", _minio.LastObjectName);
         Assert.Equal("video/mp4", _minio.LastContentType);
     }
@@ -37,10 +40,11 @@ public class UploadMediaUseCaseTests
     public async Task ExecuteAsync_WithValidRequest_CreatesMediaEntity()
     {
         var lessonId = BogusFactory.NewGuid();
+        var courseId = BogusFactory.NewGuid();
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        await useCase.ExecuteAsync(lessonId, MediaTypeEnum.Pdf, stream, "document.pdf", "application/pdf");
+        await useCase.ExecuteAsync(lessonId, courseId, MediaTypeEnum.Pdf, stream, "document.pdf", "application/pdf");
 
         Assert.Equal(1, _repo.CreateCallCount);
         Assert.NotNull(_repo.LastCreatedMedia);
@@ -52,10 +56,11 @@ public class UploadMediaUseCaseTests
     public async Task ExecuteAsync_WithValidRequest_ReturnsSuccessWithMappedResponse()
     {
         var lessonId = BogusFactory.NewGuid();
+        var courseId = BogusFactory.NewGuid();
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        var result = await useCase.ExecuteAsync(lessonId, MediaTypeEnum.Image, stream, "image.png", "image/png");
+        var result = await useCase.ExecuteAsync(lessonId, courseId, MediaTypeEnum.Image, stream, "image.png", "image/png");
 
         var data = result.ShouldSucceed();
         Assert.NotEqual(Guid.Empty, data.MediaId);
@@ -71,8 +76,8 @@ public class UploadMediaUseCaseTests
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        var result = await useCase.ExecuteAsync(BogusFactory.NewGuid(), MediaTypeEnum.Video, stream, "video.mp4",
-            "video/mp4");
+        var result = await useCase.ExecuteAsync(BogusFactory.NewGuid(), BogusFactory.NewGuid(), MediaTypeEnum.Video,
+            stream, "video.mp4", "video/mp4");
 
         result.ShouldFail("MinIO error");
     }
@@ -84,7 +89,8 @@ public class UploadMediaUseCaseTests
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        await useCase.ExecuteAsync(BogusFactory.NewGuid(), MediaTypeEnum.Video, stream, "video.mp4", "video/mp4");
+        await useCase.ExecuteAsync(BogusFactory.NewGuid(), BogusFactory.NewGuid(), MediaTypeEnum.Video, stream,
+            "video.mp4", "video/mp4");
 
         Assert.Equal(0, _repo.CreateCallCount);
     }
@@ -96,8 +102,8 @@ public class UploadMediaUseCaseTests
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        var result = await useCase.ExecuteAsync(BogusFactory.NewGuid(), MediaTypeEnum.Video, stream, "video.mp4",
-            "video/mp4");
+        var result = await useCase.ExecuteAsync(BogusFactory.NewGuid(), BogusFactory.NewGuid(), MediaTypeEnum.Video,
+            stream, "video.mp4", "video/mp4");
 
         result.ShouldFail("Repository error");
     }

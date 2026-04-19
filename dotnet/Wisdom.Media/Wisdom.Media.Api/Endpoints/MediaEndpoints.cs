@@ -49,6 +49,7 @@ public static class MediaEndpoints
 
         group.MapPost("/upload", async (
                 [FromQuery] Guid lessonId,
+                [FromQuery] Guid courseId,
                 [FromQuery] string type,
                 IFormFile file,
                 UploadMediaUseCase useCase,
@@ -59,7 +60,7 @@ public static class MediaEndpoints
 
                 await using var stream = file.OpenReadStream();
                 var result =
-                    await useCase.ExecuteAsync(lessonId, mediaType, stream, file.FileName, file.ContentType, ct: ct);
+                    await useCase.ExecuteAsync(lessonId, courseId, mediaType, stream, file.FileName, file.ContentType, ct: ct);
                 return result.IsSuccess
                     ? Results.Created($"/api/media/{result.Data!.MediaId}", result.Data)
                     : Results.BadRequest(new { error = result.Error });

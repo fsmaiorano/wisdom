@@ -241,6 +241,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     public async Task Upload_VideoFile_Returns201WithMediaData()
     {
         var lessonId = BogusFactory.NewGuid();
+        var courseId = BogusFactory.NewGuid();
         var token = NewUserToken();
 
         using var content = new MultipartFormDataContent();
@@ -253,7 +254,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.PostAsync(
-            $"/api/media/upload?lessonId={lessonId}&type=Video", content);
+            $"/api/media/upload?lessonId={lessonId}&courseId={courseId}&type=Video", content);
 
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var body = await response.Content.ReadFromJsonAsync<GetMediaResponse>();
@@ -267,6 +268,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     public async Task Upload_ReturnsPresignedFileUrl()
     {
         var lessonId = BogusFactory.NewGuid();
+        var courseId = BogusFactory.NewGuid();
         var token = NewUserToken();
 
         using var content = new MultipartFormDataContent();
@@ -279,7 +281,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
         var response = await client.PostAsync(
-            $"/api/media/upload?lessonId={lessonId}&type=Video", content);
+            $"/api/media/upload?lessonId={lessonId}&courseId={courseId}&type=Video", content);
 
         var body = await response.Content.ReadFromJsonAsync<GetMediaResponse>();
         Assert.NotNull(body!.FileUrl);

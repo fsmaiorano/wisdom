@@ -18,6 +18,8 @@ RUN dotnet restore "Wisdom.Learning/Wisdom.Learning.Api/Wisdom.Learning.Api.cspr
 
 COPY . .
 
+RUN find /src -name "*.csproj" -not -path "*/obj/*" | xargs -I{} dirname {} | sort -u | xargs -I{} mkdir -p {}/bin/Debug
+
 RUN dotnet publish "Wisdom.Learning/Wisdom.Learning.Api/Wisdom.Learning.Api.csproj" \
     -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 

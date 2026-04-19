@@ -10,9 +10,11 @@ namespace Wisdom.Media.Application.UseCases;
 public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService minioService, ICorrelationIdService correlationIdService)
 {
     private const string BucketName = "wisdom-media";
+    private const string ObjectNamePrefix = "media-raw";
 
     public async Task<Result<GetMediaResponse>> ExecuteAsync(
         Guid lessonId,
+        Guid courseId,
         MediaTypeEnum type,
         Stream fileContent,
         string fileName,
@@ -24,7 +26,7 @@ public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService 
         if (existingResult.IsSuccess && existingResult.Data!.Count > 0)
             return Result<GetMediaResponse>.Failure("A media already exists for this lesson.");
 
-        var objectName = $"media/{Guid.NewGuid()}/{fileName}";
+        var objectName = $"{ObjectNamePrefix}/{courseId}/{Guid.NewGuid()}/{fileName}";
 
         var uploadResult = await minioService.UploadAsync(BucketName, objectName, fileContent, contentType, ct);
         if (!uploadResult.IsSuccess)
