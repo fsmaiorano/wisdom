@@ -14,7 +14,7 @@ public class MediaApiClient(string baseUrl) : ApiClientBase(baseUrl)
     /// POST /api/media/upload?lessonId={lessonId}&amp;type=Video
     /// </summary>
     public async Task<GetMediaResponse?> UploadVideoAsync(
-        Guid lessonId, string videoFilePath, CancellationToken ct = default)
+        Guid lessonId, Guid courseId, string videoFilePath, CancellationToken ct = default)
     {
         if (!File.Exists(videoFilePath))
             return null;
@@ -26,7 +26,7 @@ public class MediaApiClient(string baseUrl) : ApiClientBase(baseUrl)
         content.Add(streamContent, "file", Path.GetFileName(videoFilePath));
 
         var response = await Http.PostAsync(
-            $"/api/media/upload?lessonId={lessonId}&type=Video", content, ct);
+            $"/api/media/upload?lessonId={lessonId}&courseId={courseId}&type=Video", content, ct);
 
         await EnsureSuccessAsync(response, ct);
         return await response.Content.ReadFromJsonAsync<GetMediaResponse>(JsonOptions, ct);

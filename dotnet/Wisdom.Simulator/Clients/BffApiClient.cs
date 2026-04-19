@@ -40,7 +40,7 @@ public class BffApiClient(string baseUrl) : ApiClientBase(baseUrl)
             var form = new MultipartFormDataContent();
             form.Add(fileContent, "file", Path.GetFileName(videoFilePath));
 
-            await PostMultipartAsync<object>($"/api/media/upload?lessonId={lesson.LessonId}&type=Video", form, ct);
+            await PostMultipartAsync<object>($"/api/media/upload?lessonId={lesson.LessonId}&courseId={courseId}&type=Video", form, ct);
             return (lesson, null);
         }
         catch (HttpRequestException ex)

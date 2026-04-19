@@ -60,7 +60,7 @@ public static class Scenario1
             {
                 try
                 {
-                    var media = await ctx.MediaClient.UploadVideoAsync(lesson!.LessonId, videoPath, ct);
+                    var media = await ctx.MediaClient.UploadVideoAsync(lesson!.LessonId, course.CourseId, videoPath, ct);
                     if (media is not null)
                         lesson = lesson with { MediaId = media.MediaId };
                 }
