@@ -6,6 +6,7 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o /app/worker ./cmd/worker/
 
 FROM alpine:3.21
+RUN apk add --no-cache ffmpeg
 WORKDIR /app
 COPY --from=build /app/worker .
 ENTRYPOINT ["./worker"]

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
+	"runtime/debug"
 
 	"wisdom-worker/internal/models"
 
@@ -13,19 +13,20 @@ import (
 )
 
 const (
-	exchange     = "wisdom.MediaReadyIntegrationEvent"
-	queueName    = "wisdom.MediaReadyIntegrationEvent.GoWorker"
-	dlxName      = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlx"
-	dlqName      = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlq"
-	dlqTTLMs     = int32(604_800_000) // 7 days
-	pollInterval = 5 * time.Second
+	exchange  = "wisdom.MediaReadyIntegrationEvent"
+	queueName = "wisdom.MediaReadyIntegrationEvent.GoWorker"
+	dlxName   = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlx"
+	dlqName   = "wisdom.MediaReadyIntegrationEvent.GoWorker.dlq"
+	dlqTTLMs  = int32(604_800_000) // 7 days
 )
 
 type Handler func(event models.MediaReadyIntegrationEvent)
 
-// StartConsumer connects, declares the full topology, then polls the queue every
-// 5 seconds via Basic.Get. Returns nil on clean disconnect so the caller can
-// reconnect; returns an error on setup or channel failure.
+// StartConsumer connects, declares the full topology and starts consuming
+// via Basic.Consume (push model). Each delivery is dispatched to a goroutine
+// so the select loop stays responsive regardless of handler duration.
+// Returns nil on clean disconnect so the caller can reconnect; returns an
+// error on setup or connection failure.
 func StartConsumer(url string, handler Handler) error {
 	conn, err := amqp.Dial(url)
 	if err != nil {
@@ -39,47 +40,36 @@ func StartConsumer(url string, handler Handler) error {
 	}
 	defer ch.Close()
 
+	// Process one message at a time (fair dispatch).
+	if err := ch.Qos(1, 0, false); err != nil {
+		return fmt.Errorf("set qos: %w", err)
+	}
+
+	deliveries, err := ch.Consume(queueName, "", false /* autoAck */, false, false, false, nil)
+	if err != nil {
+		return fmt.Errorf("consume: %w", err)
+	}
+
 	connClose := conn.NotifyClose(make(chan *amqp.Error, 1))
-	chClose := ch.NotifyClose(make(chan *amqp.Error, 1))
 
-	log.Printf("Polling %s every %s", queueName, pollInterval)
-
-	ticker := time.NewTicker(pollInterval)
-	defer ticker.Stop()
+	log.Printf("Consuming from %s", queueName)
 
 	for {
 		select {
-		case <-ticker.C:
-			if err := drainQueue(ch, handler); err != nil {
-				return err
+		case msg, ok := <-deliveries:
+			if !ok {
+				return nil // channel closed cleanly
 			}
-		case amqpErr := <-chClose:
-			if amqpErr != nil {
-				return fmt.Errorf("channel closed: %w", amqpErr)
-			}
-			return nil
+			// Run in a goroutine so the select loop stays alive during
+			// long-running operations (e.g. ffmpeg transcoding).
+			go processMessage(msg, handler)
+
 		case amqpErr := <-connClose:
 			if amqpErr != nil {
 				return fmt.Errorf("connection closed: %w", amqpErr)
 			}
 			return nil
 		}
-	}
-}
-
-// drainQueue pulls all available messages in a single poll cycle using Basic.Get.
-// Loops until the queue is empty (ok=false) or an error occurs.
-func drainQueue(ch *amqp.Channel, handler Handler) error {
-	for {
-		msg, ok, err := ch.Get(queueName, false /* autoAck */)
-		if err != nil {
-			return fmt.Errorf("get: %w", err)
-		}
-		if !ok {
-			log.Printf("Queue %s checked — empty", queueName)
-			return nil
-		}
-		processMessage(msg, handler)
 	}
 }
 
@@ -162,6 +152,13 @@ func declareTopology(ch *amqp.Channel) error {
 }
 
 func processMessage(msg amqp.Delivery, handler Handler) {
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Handler panicked — rejecting to DLQ: %v\n%s", r, debug.Stack())
+			_ = msg.Nack(false, false)
+		}
+	}()
+
 	var event models.MediaReadyIntegrationEvent
 	if err := json.Unmarshal(msg.Body, &event); err != nil {
 		log.Printf("Error parsing event: %v — rejecting to DLQ", err)

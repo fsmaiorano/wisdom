@@ -5,7 +5,7 @@ import (
 )
 
 type DB struct {
-	Conn *pgx.Conn
+	Pool *pgx.ConnPool
 }
 
 func NewDB(connectionString string) (*DB, error) {
@@ -13,9 +13,13 @@ func NewDB(connectionString string) (*DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	conn, err := pgx.Connect(cfg)
+	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
+		ConnConfig:     cfg,
+		MaxConnections: 5,
+		AcquireTimeout: 0, // wait indefinitely for a connection
+	})
 	if err != nil {
 		return nil, err
 	}
-	return &DB{Conn: conn}, nil
+	return &DB{Pool: pool}, nil
 }
