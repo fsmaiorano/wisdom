@@ -4,16 +4,20 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	RabbitURL          string
-	MinioURL           string
-	MinioUsername      string
-	MinioPassword      string
-	DBConnectionString string
+	RabbitURL            string
+	MinioURL             string
+	MinioUsername        string
+	MinioPassword        string
+	DBConnectionString   string
+	ReconcilerInterval   time.Duration
+	ReconcilerStaleAfter time.Duration
 }
 
 func loadEnv() {
@@ -40,10 +44,22 @@ func loadEnv() {
 func Load() *Config {
 	loadEnv()
 	return &Config{
-		RabbitURL:          os.Getenv("RABBITMQ_URL"),
-		MinioURL:           os.Getenv("MINIO_ENDPOINT"),
-		MinioUsername:      os.Getenv("MINIO_ACCESS_KEY"),
-		MinioPassword:      os.Getenv("MINIO_SECRET_KEY"),
-		DBConnectionString: os.Getenv("DB_CONN"),
+		RabbitURL:            os.Getenv("RABBITMQ_URL"),
+		MinioURL:             os.Getenv("MINIO_ENDPOINT"),
+		MinioUsername:        os.Getenv("MINIO_ACCESS_KEY"),
+		MinioPassword:        os.Getenv("MINIO_SECRET_KEY"),
+		DBConnectionString:   os.Getenv("DB_CONN"),
+		ReconcilerInterval:   envDuration("RECONCILER_INTERVAL_SECONDS", 60),
+		ReconcilerStaleAfter: envDuration("RECONCILER_STALE_SECONDS", 300),
 	}
+}
+
+func envDuration(key string, defaultSecs int) time.Duration {
+	if v := os.Getenv(key); v != "" {
+		if n, err := strconv.Atoi(v); err == nil && n > 0 {
+			return time.Duration(n) * time.Second
+		}
+		log.Printf("Warning: invalid value for %s, using default %ds", key, defaultSecs)
+	}
+	return time.Duration(defaultSecs) * time.Second
 }

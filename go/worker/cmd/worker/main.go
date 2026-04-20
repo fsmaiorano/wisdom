@@ -1,13 +1,18 @@
 package main
 
 import (
+	"context"
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"wisdom-worker/internal/config"
 	"wisdom-worker/internal/consumer"
 	"wisdom-worker/internal/database"
 	"wisdom-worker/internal/processor"
+	"wisdom-worker/internal/reconciler"
 	"wisdom-worker/internal/storage"
 )
 
@@ -34,13 +39,34 @@ func main() {
 
 	mediaProcessor := processor.New(db, store)
 
+	// Context for background workers; cancelled on SIGINT/SIGTERM.
+	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer cancel()
+
+	// Start the reconciler in the background.
+	rec := reconciler.New(db, mediaProcessor.Handle, cfg.ReconcilerInterval, cfg.ReconcilerStaleAfter)
+	go rec.Start(ctx)
+
+	// Consumer reconnect loop — runs until the process is interrupted.
 	backoff := initialBackoff
 	for {
+		select {
+		case <-ctx.Done():
+			log.Println("Shutting down consumer")
+			return
+		default:
+		}
+
 		log.Println("Connecting to RabbitMQ...")
 		err := consumer.StartConsumer(cfg.RabbitURL, mediaProcessor.Handle)
 		if err != nil {
 			log.Printf("Consumer error: %v — reconnecting in %s", err, backoff)
-			time.Sleep(backoff)
+			select {
+			case <-time.After(backoff):
+			case <-ctx.Done():
+				log.Println("Shutting down consumer")
+				return
+			}
 			if backoff < maxBackoff {
 				backoff *= 2
 			}
