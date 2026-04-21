@@ -60,7 +60,7 @@ export class CreateCourseComponent {
         next: (course) => {
           this.loading = false;
           this._snackBar.open(`"${course.title}" created successfully!`, 'Close', { duration: 3000 });
-          this._router.navigate(['/dashboard']);
+          this._router.navigate(['/dashboard/courses', course.id]);
         },
         error: () => {
           this.loading = false;

@@ -1,0 +1,169 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>New Lesson</span>
+</mat-toolbar>
+
+<div class="create-lesson-page">
+  <mat-card class="lesson-card">
+    <mat-card-header>
+      <mat-card-title>Lesson Details</mat-card-title>
+      <mat-card-subtitle>Fill in the content below to add a new lesson to this course.</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="lesson-form">
+
+        <!-- Title & Description -->
+        <mat-form-field appearance="outline">
+          <mat-label>Title</mat-label>
+          <input matInput formControlName="title" placeholder="e.g. Introduction to Observables" />
+          <mat-icon matSuffix>title</mat-icon>
+          @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+            <mat-error>Title is required.</mat-error>
+          } @else if (form.get('title')?.hasError('minlength') && form.get('title')?.touched) {
+            <mat-error>Title must be at least 3 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Description</mat-label>
+          <textarea matInput formControlName="description" rows="3"
+            placeholder="Briefly describe what this lesson covers..."></textarea>
+        </mat-form-field>
+
+        <mat-divider />
+
+        <!-- Main Content -->
+        <div class="section-title">
+          <mat-icon>play_lesson</mat-icon>
+          <span>Main Content</span>
+        </div>
+        <p class="section-hint">
+          Usually a video, but can also be slides (images / PDF) or plain text.
+        </p>
+
+        <mat-button-toggle-group formControlName="contentType" class="content-type-toggle">
+          @for (type of contentTypes; track type) {
+            <mat-button-toggle [value]="type">
+              @switch (type) {
+                @case ('video') { <mat-icon>videocam</mat-icon> }
+                @case ('slides') { <mat-icon>slideshow</mat-icon> }
+                @case ('text') { <mat-icon>article</mat-icon> }
+              }
+              {{ contentTypeLabels[type] }}
+            </mat-button-toggle>
+          }
+        </mat-button-toggle-group>
+
+        @switch (contentType) {
+          @case ('video') {
+            <div class="upload-area" [class.drag-over]="contentDragOver()"
+              (dragover)="onDragOver($event, 'content')"
+              (dragleave)="onDragLeave('content')"
+              (drop)="onContentDrop($event)">
+              <mat-icon class="upload-icon">cloud_upload</mat-icon>
+              <p>Drag & drop or choose a video file</p>
+              <p class="upload-hint">MP4, MOV, AVI, WEBM, MKV</p>
+              <input #videoInput type="file" accept="video/*,.mkv" hidden (change)="onMainFileChange($event)" />
+              <button mat-stroked-button type="button" (click)="videoInput.click()">
+                <mat-icon>attach_file</mat-icon>
+                {{ contentFile() ? 'Change file' : 'Choose file' }}
+              </button>
+              @if (contentFile(); as f) {
+                <mat-chip-set class="file-chip">
+                  <mat-chip>
+                    <mat-icon matChipAvatar>videocam</mat-icon>
+                    {{ f.name }} &middot; {{ formatBytes(f.size) }}
+                  </mat-chip>
+                </mat-chip-set>
+              }
+            </div>
+          }
+          @case ('slides') {
+            <div class="upload-area" [class.drag-over]="contentDragOver()"
+              (dragover)="onDragOver($event, 'content')"
+              (dragleave)="onDragLeave('content')"
+              (drop)="onContentDrop($event)">
+              <mat-icon class="upload-icon">burst_mode</mat-icon>
+              <p>Drag & drop or choose a slides file</p>
+              <p class="upload-hint">PDF, PPT, PPTX or images</p>
+              <input #slidesInput type="file" accept="image/*,application/pdf,.ppt,.pptx" hidden (change)="onMainFileChange($event)" />
+              <button mat-stroked-button type="button" (click)="slidesInput.click()">
+                <mat-icon>attach_file</mat-icon>
+                {{ contentFile() ? 'Change file' : 'Choose file' }}
+              </button>
+              @if (contentFile(); as f) {
+                <mat-chip-set class="file-chip">
+                  <mat-chip>
+                    <mat-icon matChipAvatar>slideshow</mat-icon>
+                    {{ f.name }} &middot; {{ formatBytes(f.size) }}
+                  </mat-chip>
+                </mat-chip-set>
+              }
+            </div>
+          }
+          @case ('text') {
+            <mat-form-field appearance="outline" class="text-content-field">
+              <mat-label>Lesson content</mat-label>
+              <textarea matInput formControlName="contentText" rows="10"
+                placeholder="Write the full lesson content here..."></textarea>
+            </mat-form-field>
+          }
+        }
+
+        <mat-divider />
+
+        <!-- Additional Resources -->
+        <div class="section-title">
+          <mat-icon>attach_file</mat-icon>
+          <span>Additional Resources</span>
+        </div>
+        <p class="section-hint">
+          Downloadable files that complement the lesson — PDFs, spreadsheets, source code, etc.
+        </p>
+
+        <div class="resources-area upload-area" [class.drag-over]="resourcesDragOver()"
+          (dragover)="onDragOver($event, 'resources')"
+          (dragleave)="onDragLeave('resources')"
+          (drop)="onResourcesDrop($event)">
+          <mat-icon class="upload-icon resources-icon">folder_open</mat-icon>
+          <p>Drag & drop files here or click to add</p>
+          <input #resourceInput type="file" multiple hidden (change)="onResourcesChange($event)" />
+          <button mat-stroked-button type="button" (click)="resourceInput.click()">
+            <mat-icon>add</mat-icon> Add files
+          </button>
+
+          @if (resources().length > 0) {
+            <mat-chip-set class="resource-chips">
+              @for (file of resources(); track file.name; let i = $index) {
+                <mat-chip (removed)="removeResource(i)">
+                  <mat-icon matChipAvatar>insert_drive_file</mat-icon>
+                  {{ file.name }} &middot; {{ formatBytes(file.size) }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-set>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button mat-stroked-button type="button" (click)="goBack()" [disabled]="loading">
+            Cancel
+          </button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="loading">
+            @if (loading) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <mat-icon>add</mat-icon> Add Lesson
+            }
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

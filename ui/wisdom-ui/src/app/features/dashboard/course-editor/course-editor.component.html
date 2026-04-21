@@ -1,0 +1,88 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Course Editor</span>
+</mat-toolbar>
+
+<div class="editor-page">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (course(); as c) {
+
+    <!-- Course Info -->
+    <mat-card class="course-info-card">
+      <mat-card-header>
+        <mat-icon mat-card-avatar class="course-avatar">school</mat-icon>
+        <mat-card-title>{{ c.title }}</mat-card-title>
+        <mat-card-subtitle>
+          {{ c.isPublished ? 'Published' : 'Draft' }} &middot; {{ c.price | currency }}
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="course-description">{{ c.description }}</p>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Lessons -->
+    <div class="lessons-header">
+      <h2>Lessons <span class="lesson-count">({{ lessons().length }})</span></h2>
+      <button mat-flat-button color="primary"
+        [routerLink]="['/dashboard/courses', c.id, 'lessons', 'new']">
+        <mat-icon>add</mat-icon> Add Lesson
+      </button>
+    </div>
+
+    @if (lessons().length === 0) {
+      <mat-card class="empty-state">
+        <mat-card-content>
+          <mat-icon class="empty-icon">video_library</mat-icon>
+          <p>No lessons yet. Add the first one!</p>
+          <button mat-stroked-button color="primary"
+            [routerLink]="['/dashboard/courses', c.id, 'lessons', 'new']">
+            Add first lesson
+          </button>
+        </mat-card-content>
+      </mat-card>
+    } @else {
+      <mat-list class="lesson-list">
+        @for (lesson of lessons(); track lesson.id; let i = $index) {
+          <mat-list-item class="lesson-item">
+            <mat-icon matListItemIcon [matTooltip]="contentTypeLabels[lesson.contentType]">
+              {{ contentTypeIcon(lesson) }}
+            </mat-icon>
+
+            <div matListItemTitle class="lesson-title">
+              <span class="lesson-order">{{ lesson.order }}.</span>
+              {{ lesson.title }}
+            </div>
+
+            <div matListItemLine class="lesson-meta">
+              @if (lesson.description) {
+                <span>{{ lesson.description }}</span>
+              }
+              @if (lesson.contentFileName) {
+                <span class="file-name">
+                  <mat-icon class="inline-icon">attach_file</mat-icon>{{ lesson.contentFileName }}
+                </span>
+              }
+            </div>
+
+            @if (lesson.resources.length > 0) {
+              <div matListItemLine class="lesson-resources">
+                <mat-icon class="inline-icon">folder_open</mat-icon>
+                {{ lesson.resources.length }} resource{{ lesson.resources.length > 1 ? 's' : '' }}:
+                @for (r of lesson.resources; track r.id) {
+                  <mat-chip class="resource-chip">{{ r.name }}</mat-chip>
+                }
+              </div>
+            }
+          </mat-list-item>
+          @if (!$last) { <mat-divider /> }
+        }
+      </mat-list>
+    }
+  }
+</div>

@@ -27,6 +27,10 @@ const MOCK_ENROLLMENTS: Array<{ userId: string; courseId: string }> = [
 
 @Injectable({ providedIn: 'root' })
 export class CourseService {
+  getCourseById(courseId: string): Observable<Course | undefined> {
+    return of(MOCK_COURSES.find((c) => c.id === courseId)).pipe(delay(300));
+  }
+
   getCoursesByTeacher(teacherId: string): Observable<Course[]> {
     const courses = MOCK_COURSES.filter((c) => c.teacherId === teacherId);
     return of(courses).pipe(delay(400));

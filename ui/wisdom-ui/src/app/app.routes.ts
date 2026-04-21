@@ -25,6 +25,22 @@ export const routes: Routes = [
             (m) => m.CreateCourseComponent,
           ),
       },
+      {
+        path: 'courses/:courseId',
+        canActivate: [teacherGuard],
+        loadComponent: () =>
+          import('./features/dashboard/course-editor/course-editor.component').then(
+            (m) => m.CourseEditorComponent,
+          ),
+      },
+      {
+        path: 'courses/:courseId/lessons/new',
+        canActivate: [teacherGuard],
+        loadComponent: () =>
+          import('./features/dashboard/course-editor/create-lesson/create-lesson.component').then(
+            (m) => m.CreateLessonComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'auth' },

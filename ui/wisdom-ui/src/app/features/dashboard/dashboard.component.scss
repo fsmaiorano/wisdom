@@ -62,6 +62,12 @@ mat-divider {
 
 .course-card {
   height: 100%;
+  cursor: pointer;
+  transition: box-shadow 150ms ease;
+
+  &:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  }
 
   p {
     color: var(--mat-sys-on-surface-variant);
