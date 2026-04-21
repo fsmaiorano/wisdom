@@ -1,17 +1,33 @@
-import { TestBed, fakeAsync, tick } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { TestBed } from '@angular/core/testing';
 import { AuthService } from './auth.service';
 import { UserRoleEnum } from '../models/user.model';
 
+const BFF_LOGIN_URL = 'http://localhost:5000/bff/auth/login';
+
+const TEACHER_RESPONSE = {
+  accessToken: 'eyJhbGciOiJSUzI1NiJ9.eyJ1c2VySWQiOiIxMTExMTExMS0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJzdWIiOiIxMTExMTExMS0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDEiLCJlbWFpbCI6InRlYWNoZXJAd2lzZG9tLmRldiIsIm5hbWUiOiJUZWFjaGVyIERlbW8iLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsidGVhY2hlciJdfX0.sig',
+  refreshToken: 'refresh-teacher',
+  expiresIn: 3600,
+  user: { id: '11111111-0000-0000-0000-000000000001', email: 'teacher@wisdom.dev', name: 'Teacher Demo', role: 'teacher' },
+};
+
 describe('AuthService', () => {
   let service: AuthService;
+  let httpMock: HttpTestingController;
 
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({});
-    service = TestBed.inject(AuthService);
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
+    service  = TestBed.inject(AuthService);
+    httpMock = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
+    httpMock.verify();
     localStorage.clear();
   });
 
@@ -25,66 +41,57 @@ describe('AuthService', () => {
   });
 
   describe('signIn', () => {
-    it('should return AuthResponse for a known email', fakeAsync(() => {
+    it('should return AuthResponse and update currentUser on success', () => {
       let result: any;
-      service.signIn({ email: 'teacher@wisdom.dev', password: 'any' }).subscribe((r) => (result = r));
-      tick(1000);
+      service.signIn({ email: 'teacher@wisdom.dev', password: 'demoteacher' }).subscribe((r) => (result = r));
+
+      const req = httpMock.expectOne(BFF_LOGIN_URL);
+      expect(req.request.method).toBe('POST');
+      req.flush(TEACHER_RESPONSE);
 
       expect(result).toBeDefined();
       expect(result.user.email).toBe('teacher@wisdom.dev');
       expect(result.user.role).toBe(UserRoleEnum.Teacher);
-      expect(result.accessToken).toContain('mock-access-token');
-    }));
+      expect(result.accessToken).toBe(TEACHER_RESPONSE.accessToken);
+    });
 
-    it('should update currentUser signal after successful signIn', fakeAsync(() => {
-      service.signIn({ email: 'teacher@wisdom.dev', password: 'any' }).subscribe();
-      tick(1000);
+    it('should update currentUser signal and persist token after signIn', () => {
+      service.signIn({ email: 'teacher@wisdom.dev', password: 'demoteacher' }).subscribe();
+      httpMock.expectOne(BFF_LOGIN_URL).flush(TEACHER_RESPONSE);
 
       expect(service.currentUser()?.email).toBe('teacher@wisdom.dev');
       expect(service.isTeacher()).toBe(true);
-    }));
+      expect(localStorage.getItem('wisdom_token')).toBe(TEACHER_RESPONSE.accessToken);
+    });
 
-    it('should throw an error for unknown email', fakeAsync(() => {
+    it('should emit error on 401 response', () => {
       let errorMsg = '';
-      service.signIn({ email: 'unknown@example.com', password: 'any' }).subscribe({
+      service.signIn({ email: 'wrong@example.com', password: 'wrongpass' }).subscribe({
         error: (e) => (errorMsg = e.message),
       });
-      tick(1000);
+
+      httpMock.expectOne(BFF_LOGIN_URL).flush('Unauthorized', { status: 401, statusText: 'Unauthorized' });
 
       expect(errorMsg).toContain('Invalid email or password');
       expect(service.currentUser()).toBeNull();
-    }));
+    });
   });
 
   describe('signUp', () => {
-    it('should create a new user and update currentUser signal', fakeAsync(() => {
-      let result: any;
-      service
-        .signUp({ email: 'new@wisdom.dev', name: 'New User', password: 'secret123', role: UserRoleEnum.Customer })
-        .subscribe((r) => (result = r));
-      tick(1000);
-
-      expect(result.user.email).toBe('new@wisdom.dev');
-      expect(result.user.role).toBe(UserRoleEnum.Customer);
-      expect(service.currentUser()?.email).toBe('new@wisdom.dev');
-    }));
-
-    it('should throw error for duplicate email', fakeAsync(() => {
+    it('should return an error (registration not available)', () => {
       let errorMsg = '';
       service
-        .signUp({ email: 'teacher@wisdom.dev', name: 'Dup', password: 'pass', role: UserRoleEnum.Teacher })
+        .signUp({ email: 'new@wisdom.dev', name: 'New', password: 'secret123', role: UserRoleEnum.Customer })
         .subscribe({ error: (e) => (errorMsg = e.message) });
-      tick(1000);
 
-      expect(errorMsg).toContain('already exists');
-    }));
+      expect(errorMsg).toContain('not yet available');
+    });
   });
 
   describe('logout', () => {
-    it('should clear currentUser signal and localStorage', fakeAsync(() => {
-      service.signIn({ email: 'student@wisdom.dev', password: 'any' }).subscribe();
-      tick(1000);
-
+    it('should clear currentUser signal and localStorage', () => {
+      service.signIn({ email: 'teacher@wisdom.dev', password: 'demoteacher' }).subscribe();
+      httpMock.expectOne(BFF_LOGIN_URL).flush(TEACHER_RESPONSE);
       expect(service.currentUser()).not.toBeNull();
 
       service.logout();
@@ -92,6 +99,7 @@ describe('AuthService', () => {
       expect(service.currentUser()).toBeNull();
       expect(service.isAuthenticated()).toBe(false);
       expect(localStorage.getItem('wisdom_user')).toBeNull();
-    }));
+    });
   });
 });
+

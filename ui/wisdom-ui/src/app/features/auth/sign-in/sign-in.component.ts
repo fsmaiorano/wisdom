@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -25,7 +25,7 @@ export class SignInComponent {
   readonly signedIn = output<User>();
 
   protected hidePassword = true;
-  protected loading = false;
+  protected readonly loading = signal(false);
   protected errorMessage = '';
 
   private readonly _fb = inject(FormBuilder);
@@ -46,16 +46,16 @@ export class SignInComponent {
       return;
     }
 
-    this.loading = true;
+    this.loading.set(true);
     this.errorMessage = '';
 
     this._authService.signIn(this.form.getRawValue()).subscribe({
       next: (response) => {
-        this.loading = false;
+        this.loading.set(false);
         this.signedIn.emit(response.user);
       },
       error: (err: Error) => {
-        this.loading = false;
+        this.loading.set(false);
         this.errorMessage = err.message;
       },
     });

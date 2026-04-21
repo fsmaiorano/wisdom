@@ -165,6 +165,17 @@
           </button>
         </div>
 
+        @if (loading && uploadStep() !== 'idle') {
+          <div class="upload-status">
+            <span class="upload-status-label">{{ uploadStepLabel }}</span>
+            @if (uploadStep() === 'uploading-content') {
+              <mat-progress-bar mode="determinate" [value]="uploadProgress()" />
+            } @else {
+              <mat-progress-bar mode="indeterminate" />
+            }
+          </div>
+        }
+
       </form>
     </mat-card-content>
   </mat-card>

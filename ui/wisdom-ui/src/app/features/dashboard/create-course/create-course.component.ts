@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -29,7 +29,7 @@ import { CourseService } from '../../../core/services/course.service';
   styleUrl: './create-course.component.scss',
 })
 export class CreateCourseComponent {
-  protected loading = false;
+  protected readonly loading = signal(false);
 
   private readonly _fb = inject(FormBuilder);
   private readonly _authService = inject(AuthService);
@@ -52,18 +52,18 @@ export class CreateCourseComponent {
     const teacher = this._authService.currentUser();
     if (!teacher) return;
 
-    this.loading = true;
+    this.loading.set(true);
 
     this._courseService
       .createCourse({ teacherId: teacher.id, ...this.form.getRawValue() })
       .subscribe({
         next: (course) => {
-          this.loading = false;
+          this.loading.set(false);
           this._snackBar.open(`"${course.title}" created successfully!`, 'Close', { duration: 3000 });
           this._router.navigate(['/dashboard/courses', course.id]);
         },
         error: () => {
-          this.loading = false;
+          this.loading.set(false);
           this._snackBar.open('Failed to create course. Please try again.', 'Close', { duration: 4000 });
         },
       });

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Wisdom.Bff.Aggregations.Courses;
 using Wisdom.Bff.Aggregations.Dashboard;
+using Wisdom.Bff.Auth;
 using Wisdom.Bff.Clients;
 using Wisdom.BuildingBlocks.Auth;
 using Wisdom.BuildingBlocks.Extensions;
@@ -88,6 +89,12 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthForwardingHandler>();
 
+// Keycloak HTTP client (used by AuthHandler for token exchange)
+builder.Services.AddHttpClient("keycloak");
+
+// Auth handler for BFF login endpoint
+builder.Services.AddTransient<AuthHandler>();
+
 builder.Services
     .AddHttpClient<CourseApiClient>(c =>
         c.BaseAddress = new Uri(builder.Configuration["BackendServices:CourseApi"]!))
@@ -147,6 +154,7 @@ app.UseAuthorization();
 app.MapHealthChecks("/health");
 
 // ── BFF aggregation endpoints ──────────────────────────────────────────────
+app.MapAuthEndpoints();
 app.MapCoursePageEndpoints();
 app.MapDashboardEndpoints();
 

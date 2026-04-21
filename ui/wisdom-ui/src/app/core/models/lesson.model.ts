@@ -24,6 +24,9 @@ export interface Lesson {
   contentFileName?: string;
   /** Plain text body when contentType is 'text' */
   contentText?: string;
+  /** Media record ID after upload */
+  mediaId?: string;
+  isPreview?: boolean;
   resources: LessonResource[];
 }
 

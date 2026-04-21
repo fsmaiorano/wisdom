@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { catchError, of } from 'rxjs';
 import { CurrencyPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -49,15 +50,21 @@ export class DashboardComponent implements OnInit {
     this.user.set(currentUser);
 
     if (this.authService.isTeacher()) {
-      this._courseService.getCoursesByTeacher(currentUser.id).subscribe((c) => {
-        this.courses.set(c);
-        this.loading.set(false);
-      });
+      this._courseService
+        .getCoursesByTeacher(currentUser.id)
+        .pipe(catchError(() => of([])))
+        .subscribe((c) => {
+          this.courses.set(c);
+          this.loading.set(false);
+        });
     } else if (this.authService.isStudent()) {
-      this._courseService.getEnrolledCourses(currentUser.id).subscribe((c) => {
-        this.courses.set(c);
-        this.loading.set(false);
-      });
+      this._courseService
+        .getEnrolledCourses(currentUser.id)
+        .pipe(catchError(() => of([])))
+        .subscribe((c) => {
+          this.courses.set(c);
+          this.loading.set(false);
+        });
     } else {
       this.loading.set(false);
     }

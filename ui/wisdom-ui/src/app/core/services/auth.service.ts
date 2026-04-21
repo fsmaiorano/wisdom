@@ -1,6 +1,7 @@
-import { computed, Injectable, signal } from '@angular/core';
-import { delay, Observable, of, throwError } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { computed, inject, Injectable, signal } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { map, tap, catchError } from 'rxjs/operators';
 import {
   AuthResponse,
   SignInRequest,
@@ -8,91 +9,85 @@ import {
   User,
   UserRoleEnum,
 } from '../models/user.model';
+import { EnvironmentService } from './environment.service';
 
 const STORAGE_KEY = 'wisdom_user';
+const TOKEN_KEY   = 'wisdom_token';
 
-const MOCK_USERS: User[] = [
-  {
-    id: '11111111-0000-0000-0000-000000000001',
-    keycloakId: 'kc-teacher-1',
-    email: 'teacher@wisdom.dev',
-    name: 'Alice Teacher',
-    role: UserRoleEnum.Teacher,
-  },
-  {
-    id: '22222222-0000-0000-0000-000000000002',
-    keycloakId: 'kc-student-1',
-    email: 'customer@wisdom.dev',
-    name: 'Bob Student',
-    role: UserRoleEnum.Customer,
-  },
-];
+interface BffLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
+  };
+}
+
+function mapRole(role: string): UserRoleEnum {
+  if (role === 'teacher') return UserRoleEnum.Teacher;
+  return UserRoleEnum.Customer;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly _currentUser = signal<User | null>(this._loadFromStorage());
-  readonly currentUser = this._currentUser.asReadonly();
+  private readonly _http = inject(HttpClient);
+  private readonly _env  = inject(EnvironmentService);
+
+  private readonly _currentUser  = signal<User | null>(this._loadFromStorage());
+  private readonly _accessToken  = signal<string | null>(this._loadToken());
+
+  readonly currentUser     = this._currentUser.asReadonly();
+  readonly accessToken     = this._accessToken.asReadonly();
   readonly isAuthenticated = computed(() => this._currentUser() !== null);
-  readonly isTeacher = computed(() => this._currentUser()?.role === UserRoleEnum.Teacher);
-  readonly isStudent = computed(() => this._currentUser()?.role === UserRoleEnum.Customer);
+  readonly isTeacher       = computed(() => this._currentUser()?.role === UserRoleEnum.Teacher);
+  readonly isStudent       = computed(() => this._currentUser()?.role === UserRoleEnum.Customer);
 
   signIn(request: SignInRequest): Observable<AuthResponse> {
-    const found = MOCK_USERS.find((u) => u.email === request.email);
-
-    if (!found) {
-      return throwError(() => new Error('Invalid email or password.')).pipe(delay(500));
-    }
-
-    const response = this._buildAuthResponse(found);
-    return of(response).pipe(
-      delay(600),
-      tap(() => this._persist(found)),
-    );
+    const url = `${this._env.apiUrl}/bff/auth/login`;
+    return this._http
+      .post<BffLoginResponse>(url, { email: request.email, password: request.password })
+      .pipe(
+        map((res) => {
+          const user: User = {
+            id:         res.user.id,
+            keycloakId: res.user.id,
+            email:      res.user.email,
+            name:       res.user.name,
+            role:       mapRole(res.user.role),
+          };
+          return {
+            user,
+            accessToken:  res.accessToken,
+            refreshToken: res.refreshToken,
+            expiresIn:    res.expiresIn,
+          } satisfies AuthResponse;
+        }),
+        tap((response) => this._persist(response.user, response.accessToken)),
+        catchError(() =>
+          throwError(() => new Error('Invalid email or password. Please try again.')),
+        ),
+      );
   }
 
-  signUp(request: SignUpRequest): Observable<AuthResponse> {
-    const exists = MOCK_USERS.some((u) => u.email === request.email);
-
-    if (exists) {
-      return throwError(() => new Error('An account with this email already exists.')).pipe(
-        delay(500),
-      );
-    }
-
-    const newUser: User = {
-      id: crypto.randomUUID(),
-      keycloakId: `kc-${crypto.randomUUID()}`,
-      email: request.email,
-      name: request.name,
-      role: request.role,
-    };
-
-    MOCK_USERS.push(newUser);
-    const response = this._buildAuthResponse(newUser);
-
-    return of(response).pipe(
-      delay(800),
-      tap(() => this._persist(newUser)),
-    );
+  signUp(_request: SignUpRequest): Observable<AuthResponse> {
+    return throwError(() => new Error('Self-registration is not yet available. Please use a demo account.'));
   }
 
   logout(): void {
     this._currentUser.set(null);
+    this._accessToken.set(null);
     localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TOKEN_KEY);
   }
 
-  private _buildAuthResponse(user: User): AuthResponse {
-    return {
-      user,
-      accessToken: `mock-access-token-${user.id}`,
-      refreshToken: `mock-refresh-token-${user.id}`,
-      expiresIn: 3600,
-    };
-  }
-
-  private _persist(user: User): void {
+  private _persist(user: User, token: string): void {
     this._currentUser.set(user);
+    this._accessToken.set(token);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+    localStorage.setItem(TOKEN_KEY, token);
   }
 
   private _loadFromStorage(): User | null {
@@ -103,4 +98,13 @@ export class AuthService {
       return null;
     }
   }
+
+  private _loadToken(): string | null {
+    try {
+      return localStorage.getItem(TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  }
 }
+

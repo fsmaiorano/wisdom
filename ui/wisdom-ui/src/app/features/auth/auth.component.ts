@@ -12,7 +12,7 @@ import { EnvironmentSwitcherComponent } from '../../shared/components/environmen
 import { User } from '../../core/models/user.model';
 
 const DEV_CREDENTIALS = {
-  teacher: { email: 'teacher@wisdom.dev', password: 'democustomer' },
+  teacher: { email: 'teacher@wisdom.dev', password: 'demoteacher' },
   customer: { email: 'customer@wisdom.dev', password: 'democustomer' },
 } as const;
 

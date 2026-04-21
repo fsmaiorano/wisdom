@@ -1,4 +1,4 @@
-import { Component, inject, output } from '@angular/core';
+import { Component, inject, output, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -34,7 +34,7 @@ export class SignUpComponent {
 
   protected hidePassword = true;
   protected hideConfirm = true;
-  protected loading = false;
+  protected readonly loading = signal(false);
   protected errorMessage = '';
   protected readonly RoleEnum = UserRoleEnum;
 
@@ -58,18 +58,18 @@ export class SignUpComponent {
       return;
     }
 
-    this.loading = true;
+    this.loading.set(true);
     this.errorMessage = '';
 
     const { confirmPassword: _, ...request } = this.form.getRawValue();
 
     this._authService.signUp(request).subscribe({
       next: (response) => {
-        this.loading = false;
+        this.loading.set(false);
         this.signedUp.emit(response.user);
       },
       error: (err: Error) => {
-        this.loading = false;
+        this.loading.set(false);
         this.errorMessage = err.message;
       },
     });

@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, of, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -48,17 +49,25 @@ export class CourseEditorComponent implements OnInit {
   private readonly _courseId = this._route.snapshot.paramMap.get('courseId')!;
 
   ngOnInit(): void {
-    this._courseService.getCourseById(this._courseId).subscribe((course) => {
-      this.course.set(course ?? null);
-      if (!course) {
-        this._router.navigate(['/dashboard']);
-        return;
-      }
-      this._lessonService.getLessonsByCourse(this._courseId).subscribe((lessons) => {
-        this.lessons.set(lessons);
+    this._courseService
+      .getCourseById(this._courseId)
+      .pipe(
+        catchError(() => of(undefined)),
+        switchMap((course) => {
+          this.course.set(course ?? null);
+          if (!course) {
+            this._router.navigate(['/dashboard']);
+            return of([]);
+          }
+          return this._lessonService
+            .getLessonsByCourse(this._courseId)
+            .pipe(catchError(() => of([])));
+        }),
+      )
+      .subscribe((lessons) => {
+        this.lessons.set(lessons as Lesson[]);
         this.loading.set(false);
       });
-    });
   }
 
   protected contentTypeIcon(lesson: Lesson): string {

@@ -5,9 +5,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Wisdom.User.Infrastructure.Data;
+
 #nullable disable
 
-namespace Wisdom.User.Infrastructure.Migrations.Migrations
+namespace Wisdom.User.Infrastructure.Migrations
 {
     [DbContext(typeof(UserDbContext))]
     partial class UserDbContextModelSnapshot : ModelSnapshot
@@ -66,6 +67,30 @@ namespace Wisdom.User.Infrastructure.Migrations.Migrations
                         .IsUnique();
 
                     b.ToTable("Users", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("11111111-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "teacher@wisdom.dev",
+                            IsActive = true,
+                            KeycloakId = "seed-teacher-demo",
+                            Name = "Teacher Demo",
+                            Password = "demoteacher",
+                            Role = "Teacher"
+                        },
+                        new
+                        {
+                            Id = new Guid("22222222-0000-0000-0000-000000000002"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "customer@wisdom.dev",
+                            IsActive = true,
+                            KeycloakId = "seed-customer-demo",
+                            Name = "Customer Demo",
+                            Password = "democustomer",
+                            Role = "Customer"
+                        });
                 });
 #pragma warning restore 612, 618
         }
