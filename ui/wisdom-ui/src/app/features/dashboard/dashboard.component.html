@@ -1,0 +1,107 @@
+<mat-toolbar color="primary">
+  <span class="toolbar-brand">🎓 Wisdom</span>
+  <span class="spacer"></span>
+  <button mat-icon-button matTooltip="Logout" (click)="logout()">
+    <mat-icon>logout</mat-icon>
+  </button>
+</mat-toolbar>
+
+<div class="dashboard-page">
+  @if (user(); as u) {
+    <div class="welcome-section">
+      <h1 class="welcome-title">Welcome back, {{ u.name }}!</h1>
+      <div class="user-meta">
+        <mat-chip-set>
+          <mat-chip>
+            <mat-icon matChipAvatar>email</mat-icon>
+            {{ u.email }}
+          </mat-chip>
+          <mat-chip [highlighted]="true">
+            <mat-icon matChipAvatar>badge</mat-icon>
+            {{ roleLabel(u) }}
+          </mat-chip>
+        </mat-chip-set>
+      </div>
+    </div>
+
+    <mat-divider />
+
+    @if (authService.isTeacher()) {
+      <section class="courses-section">
+        <div class="section-header">
+          <h2>My Courses</h2>
+          <button mat-flat-button color="primary" routerLink="/dashboard/create-course">
+            <mat-icon>add</mat-icon> New Course
+          </button>
+        </div>
+
+        @if (loading()) {
+          <div class="loading-container">
+            <mat-spinner diameter="40" />
+          </div>
+        } @else if (courses().length === 0) {
+          <mat-card class="empty-state">
+            <mat-card-content>
+              <mat-icon class="empty-icon">school</mat-icon>
+              <p>You haven't created any courses yet.</p>
+              <button mat-stroked-button color="primary" routerLink="/dashboard/create-course">
+                Create your first course
+              </button>
+            </mat-card-content>
+          </mat-card>
+        } @else {
+          <div class="course-grid">
+            @for (course of courses(); track course.id) {
+              <mat-card class="course-card">
+                <mat-card-header>
+                  <mat-card-title>{{ course.title }}</mat-card-title>
+                  <mat-card-subtitle>
+                    {{ course.isPublished ? 'Published' : 'Draft' }} &middot; {{ course.price | currency }}
+                  </mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p>{{ course.description }}</p>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (authService.isStudent()) {
+      <section class="courses-section">
+        <div class="section-header">
+          <h2>My Enrolled Courses</h2>
+        </div>
+
+        @if (loading()) {
+          <div class="loading-container">
+            <mat-spinner diameter="40" />
+          </div>
+        } @else if (courses().length === 0) {
+          <mat-card class="empty-state">
+            <mat-card-content>
+              <mat-icon class="empty-icon">menu_book</mat-icon>
+              <p>You are not enrolled in any courses yet.</p>
+            </mat-card-content>
+          </mat-card>
+        } @else {
+          <div class="course-grid">
+            @for (course of courses(); track course.id) {
+              <mat-card class="course-card">
+                <mat-card-header>
+                  <mat-card-title>{{ course.title }}</mat-card-title>
+                  <mat-card-subtitle>{{ course.price | currency }}</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content>
+                  <p>{{ course.description }}</p>
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+        }
+      </section>
+    }
+  }
+</div>

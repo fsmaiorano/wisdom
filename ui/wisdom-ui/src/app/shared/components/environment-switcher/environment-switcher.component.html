@@ -1,0 +1,8 @@
+<mat-form-field appearance="outline" class="env-field">
+  <mat-label>Environment</mat-label>
+  <mat-select [value]="activeEnv()" (valueChange)="onSelect($event)">
+    @for (opt of options; track opt.apiUrl) {
+      <mat-option [value]="opt">{{ opt.name }} — {{ opt.apiUrl }}</mat-option>
+    }
+  </mat-select>
+</mat-form-field>

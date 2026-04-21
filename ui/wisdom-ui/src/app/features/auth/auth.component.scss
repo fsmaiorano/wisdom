@@ -1,0 +1,83 @@
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--mat-sys-primary-container),
+    var(--mat-sys-secondary-container)
+  );
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+}
+
+.auth-title {
+  font-size: 24px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo {
+  font-size: 28px;
+}
+
+.tab-content {
+  padding: 24px 0 8px;
+}
+
+.dev-hint {
+  margin: 8px 16px 16px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--mat-sys-surface-variant);
+  border-left: 3px solid var(--mat-sys-tertiary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  &__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mat-sys-tertiary);
+    margin-bottom: 4px;
+  }
+
+  &__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  &__key {
+    width: 60px;
+    color: var(--mat-sys-on-surface-variant);
+    font-size: 11px;
+  }
+
+  &__fill {
+    margin-left: auto;
+    font-size: 11px;
+    line-height: 24px;
+    height: 24px;
+    padding: 0 8px;
+    min-width: unset;
+  }
+
+  code {
+    font-family: monospace;
+    background: var(--mat-sys-surface);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+}
