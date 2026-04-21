@@ -2,6 +2,38 @@
   "version": "0.2.0",
   "compounds": [
     {
+      "name": "Angular — Standalone",
+      "configurations": ["Angular (local)"],
+      "stopAll": true
+    },
+    {
+      "name": "Angular + All Services",
+      "configurations": [
+        "Angular (local)",
+        "Bff",
+        "User API",
+        "Course API",
+        "Media API",
+        "Order API",
+        "Learning API",
+        "Go Worker"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Angular + .NET Only",
+      "configurations": [
+        "Angular (local)",
+        "Bff",
+        "User API",
+        "Course API",
+        "Media API",
+        "Order API",
+        "Learning API"
+      ],
+      "stopAll": true
+    },
+    {
       "name": "All Services",
       "configurations": [
         "Bff",
@@ -28,6 +60,32 @@
     }
   ],
   "configurations": [
+    // ── Angular ───────────────────────────────────────────────────────────────
+    {
+      "name": "Angular (local)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "serve: Angular (local)",
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}/ui/wisdom-ui",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "src/*": "${workspaceFolder}/ui/wisdom-ui/src/*"
+      }
+    },
+    {
+      "name": "Angular (docker env)",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "serve: Angular (docker)",
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}/ui/wisdom-ui",
+      "sourceMaps": true,
+      "sourceMapPathOverrides": {
+        "src/*": "${workspaceFolder}/ui/wisdom-ui/src/*"
+      }
+    },
+
     // ── .NET services ──────────────────────────────────────────────────────
     {
       "name": "Bff",

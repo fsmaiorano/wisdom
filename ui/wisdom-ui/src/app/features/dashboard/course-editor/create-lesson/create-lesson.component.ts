@@ -1,5 +1,4 @@
 import { Component, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
@@ -12,7 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
-import { LessonContentType, LESSON_CONTENT_TYPE_LABELS } from '../../../../core/models/lesson.model';
+import { ActivatedRoute, Router } from '@angular/router';
+import {
+  LESSON_CONTENT_TYPE_LABELS,
+  LessonContentType,
+} from '../../../../core/models/lesson.model';
 import { LessonService } from '../../../../core/services/lesson.service';
 
 @Component({
@@ -141,7 +144,9 @@ export class CreateLessonComponent {
         },
         error: () => {
           this.loading = false;
-          this._snackBar.open('Failed to create lesson. Please try again.', 'Close', { duration: 4000 });
+          this._snackBar.open('Failed to create lesson. Please try again.', 'Close', {
+            duration: 4000,
+          });
         },
       });
   }
