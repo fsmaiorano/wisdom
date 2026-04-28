@@ -69,6 +69,12 @@ func (p *MediaProcessor) process(ctx context.Context, event models.MediaReadyInt
 		return fmt.Errorf("mark ready: %w", err)
 	}
 
+	if err := p.store.Delete(ctx, event.FilePath); err != nil {
+		log.Printf("media %s: warning: failed to delete raw file %s: %v", event.MediaId, event.FilePath, err)
+	} else {
+		log.Printf("media %s: deleted raw file %s", event.MediaId, event.FilePath)
+	}
+
 	log.Printf("media %s is Ready (duration=%ds, thumbnail=%s)", event.MediaId, output.Duration, thumbnailKey)
 	return nil
 }
