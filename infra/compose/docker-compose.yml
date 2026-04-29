@@ -321,6 +321,7 @@ services:
       - wisdom-media-api
       - wisdom-order-api
       - wisdom-learning-api
+      - wisdom-streaming
       - keycloak
     restart: unless-stopped
 
@@ -354,6 +355,11 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
 volumes:
