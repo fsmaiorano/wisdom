@@ -79,6 +79,12 @@
                 }
               </div>
             }
+
+            <button mat-icon-button matListItemMeta
+              matTooltip="Edit lesson"
+              [routerLink]="['/dashboard/courses', c.id, 'lessons', lesson.id, 'edit']">
+              <mat-icon>edit</mat-icon>
+            </button>
           </mat-list-item>
           @if (!$last) { <mat-divider /> }
         }

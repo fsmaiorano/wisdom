@@ -63,4 +63,21 @@ public class MediaRepository(MediaDbContext dbContext) : IMediaRepository
             return Result<MediaEntity>.Failure(ex.Message);
         }
     }
+
+    public async Task<Result<bool>> DeleteAsync(MediaId id, CancellationToken ct = default)
+    {
+        try
+        {
+            var media = await dbContext.Media.FirstOrDefaultAsync(m => m.Id == id, ct);
+            if (media is null)
+                return Result<bool>.Failure("Media not found.");
+            dbContext.Media.Remove(media);
+            await dbContext.SaveChangesAsync(ct);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure(ex.Message);
+        }
+    }
 }

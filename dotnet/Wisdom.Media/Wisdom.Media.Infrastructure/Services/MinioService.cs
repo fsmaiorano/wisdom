@@ -54,4 +54,19 @@ public class MinioService(IMinioClient minioClient) : IMinioService
             return Result<string>.Failure(ex.Message);
         }
     }
+
+    public async Task<Result<bool>> DeleteAsync(string bucketName, string objectName, CancellationToken ct = default)
+    {
+        try
+        {
+            await minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+                .WithBucket(bucketName)
+                .WithObject(objectName), ct);
+            return Result<bool>.Success(true);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure(ex.Message);
+        }
+    }
 }

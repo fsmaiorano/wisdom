@@ -16,6 +16,12 @@ export class LessonService {
       .pipe(map((lessons) => lessons.map(this._mapLesson)));
   }
 
+  getLessonById(courseId: string, lessonId: string): Observable<LessonApiResponse> {
+    return this._http.get<LessonApiResponse>(
+      `${this._env.apiUrl}/api/courses/${courseId}/lessons/${lessonId}`,
+    );
+  }
+
   /** Creates the lesson metadata record. Returns the API response with the real lessonId. */
   createLesson(request: CreateLessonRequest, position = 1): Observable<LessonApiResponse> {
     const body: CreateLessonApiRequest = {
@@ -27,6 +33,26 @@ export class LessonService {
     return this._http.post<LessonApiResponse>(
       `${this._env.apiUrl}/api/courses/${request.courseId}/lessons`,
       body,
+    );
+  }
+
+  updateLesson(
+    courseId: string,
+    lessonId: string,
+    title: string,
+    description: string,
+    position: number,
+    isPreview: boolean,
+  ): Observable<LessonApiResponse> {
+    return this._http.put<LessonApiResponse>(
+      `${this._env.apiUrl}/api/courses/${courseId}/lessons/${lessonId}`,
+      { title, description, position, isPreview },
+    );
+  }
+
+  deleteLesson(courseId: string, lessonId: string): Observable<void> {
+    return this._http.delete<void>(
+      `${this._env.apiUrl}/api/courses/${courseId}/lessons/${lessonId}`,
     );
   }
 

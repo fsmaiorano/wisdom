@@ -63,4 +63,12 @@ export class MediaService {
       map((e) => e.body!),
     );
   }
+
+  getMediaByLesson(lessonId: string): Observable<MediaApiResponse[]> {
+    return this._http.get<MediaApiResponse[]>(`${this._env.apiUrl}/api/media/lesson/${lessonId}`);
+  }
+
+  deleteMedia(mediaId: string): Observable<void> {
+    return this._http.delete<void>(`${this._env.apiUrl}/api/media/${mediaId}`);
+  }
 }

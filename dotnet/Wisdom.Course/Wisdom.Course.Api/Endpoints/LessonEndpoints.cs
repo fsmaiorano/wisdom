@@ -21,6 +21,17 @@ public static class LessonEndpoints
         .Produces<IReadOnlyList<GetLessonResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
+        group.MapGet("/{lessonId:guid}", async (Guid courseId, Guid lessonId, GetLessonUseCase useCase, CancellationToken ct) =>
+        {
+            var result = await useCase.ExecuteAsync(lessonId, ct);
+            return result.IsSuccess
+                ? Results.Ok(result.Data)
+                : Results.NotFound(new { error = result.Error });
+        })
+        .WithName("GetLesson")
+        .Produces<GetLessonResponse>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("/", async (
                 Guid courseId,
                 CreateLessonRequest request,

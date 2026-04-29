@@ -21,6 +21,20 @@ public static class CourseEndpoints
         .Produces<IReadOnlyList<GetCourseResponse>>(StatusCodes.Status200OK)
         .ProducesProblem(StatusCodes.Status400BadRequest);
 
+        group.MapGet("/my", async (ClaimsPrincipal user, GetTeacherCoursesUseCase useCase, CancellationToken ct) =>
+        {
+            var teacherId = user.GetUserId();
+            if (teacherId is null) return Results.Unauthorized();
+            var result = await useCase.ExecuteAsync(teacherId.Value, ct);
+            return result.IsSuccess
+                ? Results.Ok(result.Data)
+                : Results.BadRequest(new { error = result.Error });
+        })
+        .WithName("GetMyCourses")
+        .RequireAuthorization()
+        .Produces<IReadOnlyList<GetCourseResponse>>(StatusCodes.Status200OK)
+        .ProducesProblem(StatusCodes.Status400BadRequest);
+
         group.MapGet("/{id:guid}", async (Guid id, GetCourseUseCase useCase, CancellationToken ct) =>
         {
             var result = await useCase.ExecuteAsync(id, ct);

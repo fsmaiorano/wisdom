@@ -10,13 +10,15 @@ public static class DataGenerator
     public static RegisterUserRequest FakeTeacher() => new(
         Email: Faker.Internet.Email(),
         Name: Faker.Name.FullName(),
-        Password: $"P@ss{Faker.Random.Number(1000, 9999)}!",
+        // Password: $"P@ss{Faker.Random.Number(1000, 9999)}!",
+        Password: "123456!",
         Role: 1); // Teacher
 
     public static RegisterUserRequest FakeCustomer() => new(
         Email: Faker.Internet.Email(),
         Name: Faker.Name.FullName(),
-        Password: $"P@ss{Faker.Random.Number(1000, 9999)}!",
+        // Password: $"P@ss{Faker.Random.Number(1000, 9999)}!",
+        Password: "123456!",
         Role: 2); // Customer
 
     public static CreateCourseRequest FakeCourse() => new(
@@ -47,9 +49,7 @@ public static class DataGenerator
         {
             var mocks = Path.Combine(dir.FullName, "mocks");
             if (Directory.Exists(mocks))
-                return Directory.GetFiles(mocks, "*.mkv", SearchOption.TopDirectoryOnly)
-                    .Order()
-                    .ToArray();
+                return [.. Directory.GetFiles(mocks, "*.mkv", SearchOption.TopDirectoryOnly).Order()];
             dir = dir.Parent;
         }
         return [];

@@ -33,10 +33,10 @@ export class CourseService {
       .pipe(map(mapApiCourse));
   }
 
-  getCoursesByTeacher(teacherId: string): Observable<Course[]> {
+  getCoursesByTeacher(_teacherId: string): Observable<Course[]> {
     return this._http
-      .get<CourseApiResponse[]>(this._baseUrl)
-      .pipe(map((courses) => courses.filter((c) => c.teacherId === teacherId).map(mapApiCourse)));
+      .get<CourseApiResponse[]>(`${this._baseUrl}/my`)
+      .pipe(map((courses) => courses.map(mapApiCourse)));
   }
 
   getEnrolledCourses(userId: string): Observable<Course[]> {

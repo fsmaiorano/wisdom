@@ -41,6 +41,14 @@ export const routes: Routes = [
             (m) => m.CreateLessonComponent,
           ),
       },
+      {
+        path: 'courses/:courseId/lessons/:lessonId/edit',
+        canActivate: [teacherGuard],
+        loadComponent: () =>
+          import('./features/dashboard/course-editor/lesson-editor/lesson-editor.component').then(
+            (m) => m.LessonEditorComponent,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'auth' },

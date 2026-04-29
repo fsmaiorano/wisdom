@@ -340,6 +340,22 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  wisdom-streaming:
+    build:
+      context: ../../go/streaming
+      dockerfile: Dockerfile
+    container_name: wisdom-streaming
+    env_file:
+      - ../../go/streaming/.env.docker
+    ports:
+      - "6011:8080"
+    depends_on:
+      mediadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   keycloakdb-data:
   userdb-data:
