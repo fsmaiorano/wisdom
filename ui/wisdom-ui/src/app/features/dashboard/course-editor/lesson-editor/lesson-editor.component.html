@@ -1,0 +1,152 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Edit Lesson</span>
+</mat-toolbar>
+
+<div class="editor-page">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (lesson(); as l) {
+
+    <!-- Metadata card -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>Lesson Details</mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="form" class="lesson-form">
+          <mat-form-field appearance="outline">
+            <mat-label>Title</mat-label>
+            <input matInput formControlName="title" />
+            @if (form.get('title')?.hasError('required') && form.get('title')?.touched) {
+              <mat-error>Title is required.</mat-error>
+            } @else if (form.get('title')?.hasError('minlength') && form.get('title')?.touched) {
+              <mat-error>Title must be at least 3 characters.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3"></textarea>
+          </mat-form-field>
+
+          <mat-slide-toggle formControlName="isPreview" color="primary">
+            Allow free preview
+          </mat-slide-toggle>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Media files card -->
+    <mat-card class="section-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon class="title-icon">attach_file</mat-icon>
+          Files
+        </mat-card-title>
+        <mat-card-subtitle>Content and resources attached to this lesson.</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        @if (media().length === 0) {
+          <p class="empty-media">No files attached yet.</p>
+        } @else {
+          <div class="media-list">
+            @for (item of media(); track item.mediaId) {
+              <div class="media-item" [class.deleting]="isDeleting(item.mediaId)">
+                <mat-icon class="media-icon">{{ mediaTypeIcon(item.type) }}</mat-icon>
+
+                <div class="media-info">
+                  <span class="media-type-badge">{{ mediaTypeLabel(item.type) }}</span>
+                  <span class="media-path">{{ item.filePath.split('/').at(-1) }}</span>
+                  <span class="media-status">{{ item.status }}</span>
+                </div>
+
+                <div class="media-actions">
+                  @if (item.fileUrl) {
+                    <a mat-icon-button [href]="item.fileUrl" target="_blank"
+                       matTooltip="Open file">
+                      <mat-icon>open_in_new</mat-icon>
+                    </a>
+                  }
+                  <button mat-icon-button color="warn"
+                    [disabled]="isDeleting(item.mediaId)"
+                    matTooltip="Remove file"
+                    (click)="deleteMedia(item.mediaId)">
+                    @if (isDeleting(item.mediaId)) {
+                      <mat-spinner diameter="20" />
+                    } @else {
+                      <mat-icon>delete</mat-icon>
+                    }
+                  </button>
+                </div>
+              </div>
+              <mat-divider />
+            }
+          </div>
+        }
+
+        <!-- Add resources -->
+        <div class="section-title">
+          <mat-icon>folder_open</mat-icon>
+          <span>Add Resources</span>
+        </div>
+
+        <div class="upload-area" [class.drag-over]="resourcesDragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onResourcesDrop($event)">
+          <mat-icon class="upload-icon">cloud_upload</mat-icon>
+          <p>Drag & drop files here or click to add</p>
+          <input #resourceInput type="file" multiple hidden (change)="onResourcesChange($event)" />
+          <button mat-stroked-button type="button" (click)="resourceInput.click()">
+            <mat-icon>add</mat-icon> Choose files
+          </button>
+
+          @if (newResources().length > 0) {
+            <mat-chip-set class="pending-chips">
+              @for (file of newResources(); track file.name; let i = $index) {
+                <mat-chip (removed)="removePendingResource(i)">
+                  <mat-icon matChipAvatar>insert_drive_file</mat-icon>
+                  {{ file.name }} &middot; {{ formatBytes(file.size) }}
+                  <button matChipRemove>
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </mat-chip>
+              }
+            </mat-chip-set>
+          }
+        </div>
+
+        @if (saving() && uploadProgress().total > 0) {
+          <div class="upload-status">
+            <span>Uploading resources… {{ uploadProgress().done }}/{{ uploadProgress().total }}</span>
+            <mat-progress-bar mode="indeterminate" />
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button mat-stroked-button type="button" (click)="goBack()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button mat-flat-button color="primary" [disabled]="saving()" (click)="save()">
+        @if (saving()) {
+          <mat-spinner diameter="20" />
+          Saving…
+        } @else {
+          <ng-container>
+            <mat-icon>save</mat-icon> Save Changes
+          </ng-container>
+        }
+      </button>
+    </div>
+  }
+</div>

@@ -43,3 +43,11 @@ func (m *MinioClient) Upload(ctx context.Context, objectPath, filePath, contentT
 	}
 	return nil
 }
+
+func (m *MinioClient) Delete(ctx context.Context, objectPath string) error {
+	err := m.client.RemoveObject(ctx, BucketName, objectPath, minio.RemoveObjectOptions{})
+	if err != nil {
+		return fmt.Errorf("delete object %s: %w", objectPath, err)
+	}
+	return nil
+}

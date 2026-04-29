@@ -16,7 +16,7 @@ func NewDB(connectionString string) (*DB, error) {
 	pool, err := pgx.NewConnPool(pgx.ConnPoolConfig{
 		ConnConfig:     cfg,
 		MaxConnections: 5,
-		AcquireTimeout: 0, // wait indefinitely for a connection
+		AcquireTimeout: 0,
 	})
 	if err != nil {
 		return nil, err

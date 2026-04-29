@@ -47,6 +47,18 @@ public static class MediaEndpoints
             .Produces<GetMediaResponse>(StatusCodes.Status200OK)
             .ProducesProblem(StatusCodes.Status400BadRequest);
 
+        group.MapDelete("/{id:guid}", async (Guid id, DeleteMediaUseCase useCase, CancellationToken ct) =>
+            {
+                var result = await useCase.ExecuteAsync(id, ct);
+                return result.IsSuccess
+                    ? Results.NoContent()
+                    : Results.NotFound(new { error = result.Error });
+            })
+            .RequireAuthorization()
+            .WithName("DeleteMedia")
+            .Produces(StatusCodes.Status204NoContent)
+            .ProducesProblem(StatusCodes.Status404NotFound);
+
         group.MapPost("/upload", async (
                 [FromQuery] Guid lessonId,
                 [FromQuery] Guid courseId,

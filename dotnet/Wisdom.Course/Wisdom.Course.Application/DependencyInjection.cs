@@ -11,10 +11,12 @@ public static class DependencyInjection
         services.AddScoped<CreateCourseUseCase>();
         services.AddScoped<GetCourseUseCase>();
         services.AddScoped<ListCoursesUseCase>();
+        services.AddScoped<GetTeacherCoursesUseCase>();
         services.AddScoped<UpdateCourseUseCase>();
         services.AddScoped<PublishCourseUseCase>();
 
         services.AddScoped<CreateLessonUseCase>();
+        services.AddScoped<GetLessonUseCase>();
         services.AddScoped<GetLessonsUseCase>();
         services.AddScoped<UpdateLessonUseCase>();
         services.AddScoped<DeleteLessonUseCase>();

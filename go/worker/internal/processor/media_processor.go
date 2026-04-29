@@ -26,9 +26,6 @@ func New(db *database.DB, store *storage.MinioClient) *MediaProcessor {
 	return &MediaProcessor{db: db, store: store}
 }
 
-// Handle is the consumer.Handler implementation. It is called once per
-// incoming event and manages the entire lifecycle: status transitions,
-// ffmpeg processing and MinIO uploads.
 func (p *MediaProcessor) Handle(event models.MediaReadyIntegrationEvent) {
 	log.Printf("Received MediaReadyIntegrationEvent: MediaId=%s LessonId=%s MediaType=%s FilePath=%s",
 		event.MediaId, event.LessonId, event.MediaType, event.FilePath)
@@ -69,12 +66,18 @@ func (p *MediaProcessor) process(ctx context.Context, event models.MediaReadyInt
 		return fmt.Errorf("mark ready: %w", err)
 	}
 
+	if err := p.store.Delete(ctx, event.FilePath); err != nil {
+		log.Printf("media %s: warning: failed to delete raw file %s: %v", event.MediaId, event.FilePath, err)
+	} else {
+		log.Printf("media %s: deleted raw file %s", event.MediaId, event.FilePath)
+	}
+
 	log.Printf("media %s is Ready (duration=%ds, thumbnail=%s)", event.MediaId, output.Duration, thumbnailKey)
 	return nil
 }
 
-func (p *MediaProcessor) uploadResults(ctx context.Context, mediaId string, output *video.ProcessedOutput) (string, error) {
-	prefix := "media/" + mediaId
+func (p *MediaProcessor) uploadResults(ctx context.Context, MediaID string, output *video.ProcessedOutput) (string, error) {
+	prefix := "media/" + MediaID
 	thumbnailKey := prefix + "/thumbnail.jpg"
 
 	if err := p.store.Upload(ctx, thumbnailKey, output.ThumbnailLocalPath, "image/jpeg"); err != nil {
@@ -86,30 +89,30 @@ func (p *MediaProcessor) uploadResults(ctx context.Context, mediaId string, outp
 		if err := p.store.Upload(ctx, key, localPath, "video/mp4"); err != nil {
 			return "", fmt.Errorf("upload %s: %w", label, err)
 		}
-		log.Printf("media %s: uploaded %s", mediaId, key)
+		log.Printf("media %s: uploaded %s", MediaID, key)
 	}
 
 	return thumbnailKey, nil
 }
 
-func (p *MediaProcessor) markReady(mediaId, thumbnailKey string, duration int) error {
+func (p *MediaProcessor) markReady(MediaID, thumbnailKey string, duration int) error {
 	_, err := p.db.Pool.Exec(
 		`UPDATE "Media" SET "Status" = $1, "ThumbnailPath" = $2, "Duration" = $3, "LastModifiedAt" = $4 WHERE "Id" = $5::uuid`,
 		"Ready",
 		thumbnailKey,
 		duration,
 		time.Now().UTC(),
-		mediaId,
+		MediaID,
 	)
 	return err
 }
 
-func (p *MediaProcessor) setStatus(mediaId, status string) error {
+func (p *MediaProcessor) setStatus(MediaID, status string) error {
 	_, err := p.db.Pool.Exec(
 		`UPDATE "Media" SET "Status" = $1, "LastModifiedAt" = $2 WHERE "Id" = $3::uuid`,
 		status,
 		time.Now().UTC(),
-		mediaId,
+		MediaID,
 	)
 	return err
 }

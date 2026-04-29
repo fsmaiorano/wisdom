@@ -1,6 +1,7 @@
 {
   "folders": [
-    { "name": "Wisdom (root)", "path": "." },
+    { "name": "Wisdom (root)",   "path": "." },
+    { "name": "Angular — UI",    "path": "ui/wisdom-ui" },
     { "name": ".NET — Bff",      "path": "dotnet/Wisdom.Bff" },
     { "name": ".NET — User",     "path": "dotnet/Wisdom.User" },
     { "name": ".NET — Course",   "path": "dotnet/Wisdom.Course" },
@@ -39,7 +40,9 @@
       "ms-dotnettools.csdevkit",
       "ms-dotnettools.csharp",
       "ms-dotnettools.vscode-dotnet-runtime",
-      "golang.go"
+      "golang.go",
+      "angular.ng-template",
+      "ms-edgedevtools.vscode-edge-devtools"
     ]
   }
 }

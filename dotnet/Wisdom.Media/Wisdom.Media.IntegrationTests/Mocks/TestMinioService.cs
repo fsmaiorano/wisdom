@@ -35,4 +35,9 @@ public class TestMinioService : IMinioService
 
         return Task.FromResult(Result<string>.Success($"https://test-minio/{bucketName}/{objectName}?expires={expirySeconds}"));
     }
+
+    public Task<Result<bool>> DeleteAsync(string bucketName, string objectName, CancellationToken ct = default)
+    {
+        return Task.FromResult(Result<bool>.Success(true));
+    }
 }

@@ -15,6 +15,7 @@ public static class DependencyInjection
         services.AddScoped<GetLessonMediaUseCase>();
         services.AddScoped<UpdateMediaStatusUseCase>();
         services.AddScoped<UploadMediaUseCase>();
+        services.AddScoped<DeleteMediaUseCase>();
 
         services.AddScoped<IDomainEventHandler<MediaReadyDomainEvent>, MediaReadyDomainEventHandler>();
 

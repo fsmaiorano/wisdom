@@ -1,0 +1,100 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button (click)="goBack()">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Course Details</span>
+</mat-toolbar>
+
+<div class="course-page">
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (page(); as p) {
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="hero-content">
+        <h1>{{ p.title }}</h1>
+        <p class="hero-description">{{ p.description }}</p>
+
+        <div class="hero-meta">
+          <span class="price">{{ p.price | currency }}</span>
+          @if (p.enrollment.isEnrolled) {
+            <mat-progress-bar mode="determinate" [value]="p.progress.percentage" />
+            <span class="progress-label">
+              {{ p.progress.completedLessons }}/{{ p.progress.totalLessons }} lessons &middot;
+              {{ p.progress.percentage | number:'1.0-0' }}% complete
+            </span>
+          }
+        </div>
+
+        @if (p.enrollment.isEnrolled) {
+          @if (firstLesson; as lesson) {
+            <button mat-flat-button color="accent" class="cta-btn"
+              (click)="watchLesson(lesson)">
+              <mat-icon>play_circle</mat-icon>
+              {{ p.progress.percentage > 0 ? 'Continue Learning' : 'Start Course' }}
+            </button>
+          }
+        } @else {
+          <button mat-flat-button color="accent" class="cta-btn"
+            [disabled]="enrolling()"
+            (click)="enroll()">
+            @if (enrolling()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <mat-icon>shopping_cart</mat-icon>
+            }
+            Enroll for {{ p.price | currency }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <mat-divider />
+
+    <!-- Lesson list -->
+    <div class="lessons-section">
+      <h2>Course Content
+        <span class="lesson-count">{{ p.lessons.length }} lessons</span>
+      </h2>
+
+      <mat-list class="lesson-list">
+        @for (lesson of p.lessons; track lesson.lessonId; let last = $last) {
+          <mat-list-item class="lesson-item"
+            [class.accessible]="canAccess(lesson)"
+            [class.locked]="!canAccess(lesson)"
+            (click)="watchLesson(lesson)">
+
+            <mat-icon matListItemIcon
+              [class.completed]="lesson.progress?.isCompleted"
+              [class.locked-icon]="!canAccess(lesson)">
+              {{ lessonIcon(lesson) }}
+            </mat-icon>
+
+            <div matListItemTitle>
+              <span class="lesson-position">{{ lesson.position }}.</span>
+              {{ lesson.title }}
+              @if (lesson.isPreview && !p.enrollment.isEnrolled) {
+                <span class="preview-badge">Free Preview</span>
+              }
+            </div>
+
+            @if (lesson.description) {
+              <div matListItemLine class="lesson-desc">{{ lesson.description }}</div>
+            }
+
+            @if (lesson.progress && lesson.progress.watchedSeconds > 0 && !lesson.progress.isCompleted) {
+              <div matListItemLine>
+                <mat-progress-bar mode="determinate"
+                  [value]="0" class="lesson-progress" />
+              </div>
+            }
+          </mat-list-item>
+          @if (!last) { <mat-divider /> }
+        }
+      </mat-list>
+    </div>
+  }
+</div>

@@ -1,0 +1,129 @@
+.create-lesson-page {
+  max-width: 760px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+.lesson-card {
+  width: 100%;
+}
+
+.lesson-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 16px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 4px;
+  color: var(--mat-sys-on-surface);
+
+  mat-icon {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.section-hint {
+  margin: -12px 0 0;
+  font-size: 13px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.content-type-toggle {
+  width: 100%;
+
+  mat-button-toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 28px 16px;
+  border: 2px dashed var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  background: var(--mat-sys-surface-variant);
+  text-align: center;
+  transition: border-color 150ms ease, background 150ms ease;
+
+  &.drag-over {
+    border-color: var(--mat-sys-primary);
+    background: color-mix(in srgb, var(--mat-sys-primary) 8%, var(--mat-sys-surface-variant));
+  }
+
+  p {
+    margin: 0;
+    font-weight: 500;
+  }
+}
+
+.upload-icon {
+  font-size: 48px;
+  width: 48px;
+  height: 48px;
+  color: var(--mat-sys-primary);
+  opacity: 0.7;
+}
+
+.upload-hint {
+  font-size: 12px;
+  color: var(--mat-sys-on-surface-variant) !important;
+  font-weight: 400 !important;
+}
+
+.file-chip {
+  margin-top: 4px;
+}
+
+.text-content-field {
+  width: 100%;
+}
+
+.resources-icon {
+  opacity: 0.6;
+}
+
+.resource-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-bottom: 8px;
+}
+
+.upload-status {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0 4px;
+
+  .upload-status-label {
+    font-size: 0.85rem;
+    color: var(--mat-sys-on-surface-variant);
+  }
+
+  mat-progress-bar {
+    border-radius: 4px;
+  }
+}

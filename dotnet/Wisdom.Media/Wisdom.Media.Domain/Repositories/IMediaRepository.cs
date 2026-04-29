@@ -9,4 +9,5 @@ public interface IMediaRepository
     Task<Result<IReadOnlyList<MediaEntity>>> GetByLessonIdAsync(Guid lessonId, CancellationToken ct = default);
     Task<Result<MediaEntity>> CreateAsync(MediaEntity media, CancellationToken ct = default);
     Task<Result<MediaEntity>> UpdateAsync(MediaEntity media, CancellationToken ct = default);
+    Task<Result<bool>> DeleteAsync(MediaId id, CancellationToken ct = default);
 }

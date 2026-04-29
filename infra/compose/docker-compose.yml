@@ -123,7 +123,7 @@ services:
     image: quay.io/keycloak/keycloak:26.1
     container_name: keycloak
     restart: unless-stopped
-    command: start-dev --import-realm
+    entrypoint: ["/bin/sh", "/opt/keycloak/init/keycloak-entrypoint.sh"]
     environment:
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloakdb:5432/KeycloakDb
@@ -140,6 +140,7 @@ services:
       - "8180:8080"
     volumes:
       - ../keycloak:/opt/keycloak/data/import
+      - ../keycloak/keycloak-entrypoint.sh:/opt/keycloak/init/keycloak-entrypoint.sh:ro
     depends_on:
       keycloakdb:
         condition: service_healthy
@@ -320,6 +321,7 @@ services:
       - wisdom-media-api
       - wisdom-order-api
       - wisdom-learning-api
+      - wisdom-streaming
       - keycloak
     restart: unless-stopped
 
@@ -337,6 +339,27 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+    restart: unless-stopped
+
+  wisdom-streaming:
+    build:
+      context: ../../go/streaming
+      dockerfile: Dockerfile
+    container_name: wisdom-streaming
+    env_file:
+      - ../../go/streaming/.env.docker
+    ports:
+      - "6011:8080"
+    depends_on:
+      mediadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
 
 volumes:

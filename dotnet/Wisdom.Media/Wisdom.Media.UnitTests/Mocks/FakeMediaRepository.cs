@@ -77,4 +77,12 @@ public class FakeMediaRepository : IMediaRepository
 
         return Task.FromResult(Result<MediaEntity>.Success(media));
     }
+
+    public Task<Result<bool>> DeleteAsync(MediaId id, CancellationToken ct = default)
+    {
+        var removed = _store.RemoveAll(m => m.Id == id) > 0;
+        return Task.FromResult(removed
+            ? Result<bool>.Success(true)
+            : Result<bool>.Failure("Media not found."));
+    }
 }

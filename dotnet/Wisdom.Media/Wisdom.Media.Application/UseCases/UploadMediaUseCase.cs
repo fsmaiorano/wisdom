@@ -22,10 +22,6 @@ public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService 
         string? thumbnailPath = null,
         CancellationToken ct = default)
     {
-        var existingResult = await mediaRepository.GetByLessonIdAsync(lessonId, ct);
-        if (existingResult.IsSuccess && existingResult.Data!.Count > 0)
-            return Result<GetMediaResponse>.Failure("A media already exists for this lesson.");
-
         var objectName = $"{ObjectNamePrefix}/{courseId}/{Guid.NewGuid()}/{fileName}";
 
         var uploadResult = await minioService.UploadAsync(BucketName, objectName, fileContent, contentType, ct);

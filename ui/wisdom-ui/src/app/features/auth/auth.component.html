@@ -1,0 +1,50 @@
+<div class="auth-page">
+  <mat-card class="auth-card">
+    <mat-card-header>
+      <mat-card-title class="auth-title">
+        <span class="logo">🎓</span> Wisdom
+      </mat-card-title>
+      <mat-card-subtitle>Your learning platform</mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-divider />
+
+    @if (envService.isDev) {
+      <app-environment-switcher />
+      <mat-divider />
+    }
+
+    <mat-card-content>
+      <mat-tab-group animationDuration="200ms" dynamicHeight>
+        <mat-tab label="Sign In">
+          <div class="tab-content">
+            <app-sign-in (signedIn)="onAuthenticated($event)" />
+          </div>
+        </mat-tab>
+        <mat-tab label="Create Account">
+          <div class="tab-content">
+            <app-sign-up (signedUp)="onAuthenticated($event)" />
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+
+      @if (envService.isDev) {
+        <div class="dev-hint">
+          <span class="dev-hint__label">🧪 Dev credentials</span>
+          <div class="dev-hint__row">
+            <span class="dev-hint__key">Teacher</span>
+            <code>teacher&#64;wisdom.dev</code>
+            <code class="dev-hint__pass">demoteacher</code>
+            <button mat-stroked-button class="dev-hint__fill" (click)="fillCredential('teacher')">Fill</button>
+          </div>
+          <div class="dev-hint__row">
+            <span class="dev-hint__key">Customer</span>
+            <code>customer&#64;wisdom.dev</code>
+            <code class="dev-hint__pass">democustomer</code>
+            <button mat-stroked-button class="dev-hint__fill" (click)="fillCredential('customer')">Fill</button>
+          </div>
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,45 @@
+<mat-toolbar color="primary">
+  <button mat-icon-button routerLink="/dashboard">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span>Course Catalog</span>
+</mat-toolbar>
+
+<div class="catalog-page">
+  <div class="catalog-header">
+    <h1>Explore Courses</h1>
+    <p class="subtitle">Expand your knowledge with our curated courses.</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <mat-spinner diameter="48" />
+    </div>
+  } @else if (courses().length === 0) {
+    <div class="empty-state">
+      <mat-icon class="empty-icon">school</mat-icon>
+      <p>No courses available yet. Check back soon!</p>
+    </div>
+  } @else {
+    <div class="course-grid">
+      @for (course of courses(); track course.id) {
+        <mat-card class="course-card">
+          <mat-card-header>
+            <mat-icon mat-card-avatar class="course-avatar">menu_book</mat-icon>
+            <mat-card-title>{{ course.title }}</mat-card-title>
+            <mat-card-subtitle>{{ course.price | currency }}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="course-description">{{ course.description }}</p>
+          </mat-card-content>
+          <mat-card-actions align="end">
+            <button mat-flat-button color="primary"
+              [routerLink]="['/learn', 'courses', course.id]">
+              View Course
+            </button>
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+  }
+</div>
