@@ -1,0 +1,140 @@
+.course-page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding-bottom: 48px;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.hero {
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--mat-sys-primary) 12%, transparent),
+    color-mix(in srgb, var(--mat-sys-secondary) 8%, transparent));
+  padding: 40px 24px;
+}
+
+.hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .hero-description {
+    margin: 0;
+    font-size: 15px;
+    color: var(--mat-sys-on-surface-variant);
+    line-height: 1.6;
+  }
+}
+
+.hero-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .price {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--mat-sys-primary);
+  }
+
+  mat-progress-bar { border-radius: 4px; }
+
+  .progress-label {
+    font-size: 13px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.cta-btn {
+  align-self: flex-start;
+  height: 44px;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lessons-section {
+  padding: 24px 24px 0;
+
+  h2 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .lesson-count {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--mat-sys-on-surface-variant);
+    background: var(--mat-sys-surface-variant);
+    padding: 2px 10px;
+    border-radius: 12px;
+  }
+}
+
+.lesson-list {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 8px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.lesson-item {
+  height: auto !important;
+  padding: 12px 16px !important;
+  transition: background-color 0.15s;
+
+  &.accessible { cursor: pointer; }
+  &.accessible:hover {
+    background: color-mix(in srgb, var(--mat-sys-primary) 6%, transparent);
+  }
+
+  &.locked {
+    cursor: default;
+    opacity: 0.6;
+  }
+
+  .completed { color: var(--mat-sys-tertiary); }
+  .locked-icon { color: var(--mat-sys-on-surface-variant); }
+
+  .lesson-position {
+    font-weight: 600;
+    margin-right: 4px;
+  }
+
+  .preview-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: color-mix(in srgb, var(--mat-sys-primary) 15%, transparent);
+    color: var(--mat-sys-primary);
+    vertical-align: middle;
+  }
+
+  .lesson-desc {
+    font-size: 13px;
+    color: var(--mat-sys-on-surface-variant);
+    white-space: normal !important;
+    line-height: 1.4;
+  }
+
+  .lesson-progress { margin-top: 6px; }
+}

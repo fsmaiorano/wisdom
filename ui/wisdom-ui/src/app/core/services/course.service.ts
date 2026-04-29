@@ -1,11 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable, of } from 'rxjs';
-import { CourseApiResponse, CreateCourseApiRequest } from '../models/api.model';
+import { map, Observable } from 'rxjs';
+import {
+  CourseApiResponse,
+  CoursePageResponse,
+  CreateCourseApiRequest,
+  DashboardResponse,
+  EnrolledCourseItem,
+} from '../models/api.model';
 import { Course, CreateCourseRequest } from '../models/course.model';
 import { EnvironmentService } from './environment.service';
-
-const MOCK_ENROLLMENTS: Array<{ userId: string; courseId: string }> = [];
 
 function mapApiCourse(c: CourseApiResponse): Course {
   return {
@@ -27,7 +31,13 @@ export class CourseService {
     return `${this._env.apiUrl}/api/courses`;
   }
 
-  getCourseById(courseId: string): Observable<Course | undefined> {
+  getAllPublished(): Observable<Course[]> {
+    return this._http
+      .get<CourseApiResponse[]>(this._baseUrl)
+      .pipe(map((courses) => courses.map(mapApiCourse)));
+  }
+
+  getCourseById(courseId: string): Observable<Course> {
     return this._http
       .get<CourseApiResponse>(`${this._baseUrl}/${courseId}`)
       .pipe(map(mapApiCourse));
@@ -39,10 +49,16 @@ export class CourseService {
       .pipe(map((courses) => courses.map(mapApiCourse)));
   }
 
-  getEnrolledCourses(userId: string): Observable<Course[]> {
-    // TODO: replace with BFF /bff/dashboard once Keycloak auth is integrated
-    const enrolledIds = MOCK_ENROLLMENTS.filter((e) => e.userId === userId).map((e) => e.courseId);
-    return of(enrolledIds.map(() => [] as Course[]).flat());
+  getEnrolledCourses(): Observable<EnrolledCourseItem[]> {
+    return this._http
+      .get<DashboardResponse>(`${this._env.apiUrl}/bff/dashboard`)
+      .pipe(map((r) => r.enrolledCourses));
+  }
+
+  getCoursePage(courseId: string): Observable<CoursePageResponse> {
+    return this._http.get<CoursePageResponse>(
+      `${this._env.apiUrl}/bff/courses/${courseId}/page`,
+    );
   }
 
   createCourse(request: CreateCourseRequest): Observable<Course> {

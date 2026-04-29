@@ -51,5 +51,30 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'learn',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: 'catalog',
+        loadComponent: () =>
+          import('./features/learn/course-catalog/course-catalog.component').then(
+            (m) => m.CourseCatalogComponent,
+          ),
+      },
+      {
+        path: 'courses/:courseId',
+        loadComponent: () =>
+          import('./features/learn/course-page/course-page.component').then(
+            (m) => m.CoursePageComponent,
+          ),
+      },
+      {
+        path: 'courses/:courseId/watch/:lessonId',
+        loadComponent: () =>
+          import('./features/learn/watch/watch.component').then((m) => m.WatchComponent),
+      },
+    ],
+  },
   { path: '**', redirectTo: 'auth' },
 ];

@@ -1,6 +1,11 @@
 <mat-toolbar color="primary">
   <span class="toolbar-brand">🎓 Wisdom</span>
   <span class="spacer"></span>
+  @if (authService.isStudent()) {
+    <button mat-button routerLink="/learn/catalog">
+      <mat-icon>explore</mat-icon> Browse Courses
+    </button>
+  }
   <button mat-icon-button matTooltip="Logout" (click)="logout()">
     <mat-icon>logout</mat-icon>
   </button>
@@ -26,6 +31,7 @@
 
     <mat-divider />
 
+    <!-- Teacher view -->
     @if (authService.isTeacher()) {
       <section class="courses-section">
         <div class="section-header">
@@ -36,9 +42,7 @@
         </div>
 
         @if (loading()) {
-          <div class="loading-container">
-            <mat-spinner diameter="40" />
-          </div>
+          <div class="loading-container"><mat-spinner diameter="40" /></div>
         } @else if (courses().length === 0) {
           <mat-card class="empty-state">
             <mat-card-content>
@@ -74,34 +78,56 @@
       </section>
     }
 
+    <!-- Student view -->
     @if (authService.isStudent()) {
       <section class="courses-section">
         <div class="section-header">
           <h2>My Enrolled Courses</h2>
+          <button mat-stroked-button routerLink="/learn/catalog">
+            <mat-icon>explore</mat-icon> Browse more
+          </button>
         </div>
 
         @if (loading()) {
-          <div class="loading-container">
-            <mat-spinner diameter="40" />
-          </div>
-        } @else if (courses().length === 0) {
+          <div class="loading-container"><mat-spinner diameter="40" /></div>
+        } @else if (enrolledCourses().length === 0) {
           <mat-card class="empty-state">
             <mat-card-content>
               <mat-icon class="empty-icon">menu_book</mat-icon>
               <p>You are not enrolled in any courses yet.</p>
+              <button mat-flat-button color="primary" routerLink="/learn/catalog">
+                Browse courses
+              </button>
             </mat-card-content>
           </mat-card>
         } @else {
           <div class="course-grid">
-            @for (course of courses(); track course.id) {
-              <mat-card class="course-card">
+            @for (c of enrolledCourses(); track c.courseId) {
+              <mat-card class="course-card enrolled-card">
                 <mat-card-header>
-                  <mat-card-title>{{ course.title }}</mat-card-title>
-                  <mat-card-subtitle>{{ course.price | currency }}</mat-card-subtitle>
+                  <mat-card-title>{{ c.title }}</mat-card-title>
+                  <mat-card-subtitle>{{ c.price | currency }}</mat-card-subtitle>
                 </mat-card-header>
                 <mat-card-content>
-                  <p>{{ course.description }}</p>
+                  <p>{{ c.description }}</p>
+                  <div class="progress-row">
+                    <mat-progress-bar
+                      mode="determinate"
+                      [value]="c.progress.percentage"
+                      color="primary" />
+                    <span class="progress-label">
+                      {{ c.progress.completedLessons }}/{{ c.progress.totalLessons }} lessons
+                      &middot; {{ c.progress.percentage | number:'1.0-0' }}%
+                    </span>
+                  </div>
                 </mat-card-content>
+                <mat-card-actions align="end">
+                  <button mat-flat-button color="primary"
+                    [routerLink]="['/learn', 'courses', c.courseId]">
+                    <mat-icon>play_circle</mat-icon>
+                    {{ c.progress.percentage > 0 ? 'Continue' : 'Start' }}
+                  </button>
+                </mat-card-actions>
               </mat-card>
             }
           </div>

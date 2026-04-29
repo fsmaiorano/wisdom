@@ -1,0 +1,145 @@
+<mat-toolbar color="primary" class="watch-toolbar">
+  <button mat-icon-button (click)="goBack()" matTooltip="Back to course">
+    <mat-icon>arrow_back</mat-icon>
+  </button>
+  <span class="toolbar-title">{{ page()?.title }}</span>
+  <span class="spacer"></span>
+  @if (page(); as p) {
+    <span class="progress-info">
+      {{ p.progress.completedLessons }}/{{ p.progress.totalLessons }} &middot;
+      {{ p.progress.percentage | number:'1.0-0' }}%
+    </span>
+  }
+</mat-toolbar>
+
+@if (loading()) {
+  <div class="loading-container">
+    <mat-spinner diameter="48" />
+  </div>
+} @else if (page(); as p) {
+  <div class="watch-layout">
+
+    <!-- Main content -->
+    <div class="main-area">
+
+      @if (currentLesson(); as lesson) {
+        <!-- Video player -->
+        @if (mainVideo(); as video) {
+          <div class="player-wrapper">
+            <video #videoEl
+              class="video-player"
+              [src]="streamUrl(video.mediaId)"
+              controls
+              preload="metadata"
+              (loadedmetadata)="onMetadataLoaded()"
+              (timeupdate)="onTimeUpdate($event)"
+              (ended)="onVideoEnded()">
+              Your browser does not support HTML5 video.
+            </video>
+          </div>
+
+          <!-- Quality selector -->
+          <div class="quality-bar">
+            <mat-icon class="quality-icon">hd</mat-icon>
+            <span class="quality-label">Quality:</span>
+            @for (q of qualities; track q) {
+              <button mat-button
+                [class.active-quality]="quality() === q"
+                (click)="onQualityChange(q)">
+                {{ q }}
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Text content -->
+        @if (!mainVideo()) {
+          <div class="text-content">
+            <mat-icon class="text-icon">article</mat-icon>
+            <p>{{ lesson.description }}</p>
+          </div>
+        }
+
+        <!-- Lesson info -->
+        <div class="lesson-info">
+          <h2 class="lesson-title">
+            <span class="lesson-num">{{ lesson.position }}.</span>
+            {{ lesson.title }}
+          </h2>
+          @if (lesson.description && mainVideo()) {
+            <p class="lesson-desc">{{ lesson.description }}</p>
+          }
+        </div>
+
+        <!-- Resources -->
+        @if (resourceFiles().length > 0) {
+          <div class="resources-section">
+            <mat-divider />
+            <h3>
+              <mat-icon>attach_file</mat-icon> Resources
+            </h3>
+            <mat-list class="resource-list">
+              @for (media of resourceFiles(); track media.mediaId) {
+                <mat-list-item>
+                  <mat-icon matListItemIcon>{{ resourceIcon(media.filePath) }}</mat-icon>
+                  <div matListItemTitle>{{ resourceName(media.filePath) }}</div>
+                  @if (media.fileUrl) {
+                    <a mat-icon-button matListItemMeta [href]="media.fileUrl" target="_blank"
+                       matTooltip="Download">
+                      <mat-icon>download</mat-icon>
+                    </a>
+                  }
+                </mat-list-item>
+              }
+            </mat-list>
+          </div>
+        }
+
+        <!-- Prev / Next -->
+        <div class="nav-actions">
+          @if (prevLesson; as prev) {
+            <button mat-stroked-button (click)="selectLesson(prev)">
+              <mat-icon>chevron_left</mat-icon> Previous
+            </button>
+          } @else {
+            <span></span>
+          }
+          @if (nextLesson; as next) {
+            <button mat-flat-button color="primary" (click)="selectLesson(next)">
+              Next <mat-icon iconPositionEnd>chevron_right</mat-icon>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Lesson sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="sidebar-title">Course Content</span>
+        <mat-progress-bar mode="determinate" [value]="p.progress.percentage" />
+      </div>
+
+      <div class="lesson-sidebar-list">
+        @for (lesson of p.lessons; track lesson.lessonId) {
+          <div class="sidebar-lesson"
+            [class.current]="lesson.lessonId === currentLesson()?.lessonId"
+            [class.completed]="lesson.progress?.isCompleted"
+            [class.locked]="!canAccess(lesson)"
+            (click)="selectLesson(lesson)">
+            <mat-icon class="state-icon">{{ lessonStateIcon(lesson) }}</mat-icon>
+            <div class="sidebar-lesson-info">
+              <span class="sidebar-lesson-title">{{ lesson.title }}</span>
+              @if (lesson.progress?.isCompleted) {
+                <span class="sidebar-lesson-sub">Completed</span>
+              } @else if (lesson.progress && lesson.progress.watchedSeconds > 0) {
+                <span class="sidebar-lesson-sub">In progress</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </aside>
+
+  </div>
+}
