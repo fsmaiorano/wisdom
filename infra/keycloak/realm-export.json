@@ -98,7 +98,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["admin", "default-roles-wisdom"]
+      "realmRoles": [
+        "admin",
+        "default-roles-wisdom"
+      ]
     },
     {
       "username": "user",
@@ -114,23 +117,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["customer", "default-roles-wisdom"]
-    },
-    {
-      "username": "Customer Demo",
-      "email": "customer@wisdom.dev",
-      "firstName": "Customer",
-      "lastName": "Demo",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "democustomer",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["customer", "default-roles-wisdom"]
+      "realmRoles": [
+        "customer",
+        "default-roles-wisdom"
+      ]
     },
     {
       "username": "teacher",
@@ -146,23 +136,10 @@
           "temporary": false
         }
       ],
-      "realmRoles": ["teacher", "default-roles-wisdom"]
-    },
-    {
-      "username": "Teacher Demo",
-      "email": "teacher@wisdom.dev",
-      "firstName": "Teacher",
-      "lastName": "Demo",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [
-        {
-          "type": "password",
-          "value": "demoteacher",
-          "temporary": false
-        }
-      ],
-      "realmRoles": ["teacher", "default-roles-wisdom"]
+      "realmRoles": [
+        "teacher",
+        "default-roles-wisdom"
+      ]
     }
   ],
 
