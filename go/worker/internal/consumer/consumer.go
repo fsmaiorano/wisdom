@@ -58,10 +58,9 @@ func StartConsumer(url string, handler Handler) error {
 		select {
 		case msg, ok := <-deliveries:
 			if !ok {
-				return nil // channel closed cleanly
+				return nil
 			}
-			// Run in a goroutine so the select loop stays alive during
-			// long-running operations (e.g. ffmpeg transcoding).
+
 			go processMessage(msg, handler)
 
 		case amqpErr := <-connClose:
@@ -73,8 +72,6 @@ func StartConsumer(url string, handler Handler) error {
 	}
 }
 
-// setupChannel opens a channel and declares the full topology:
-//
 //	Exchange : wisdom.MediaReadyIntegrationEvent              (fanout, durable)
 //	DLX      : wisdom.MediaReadyIntegrationEvent.GoWorker.dlx (fanout, durable)
 //	DLQ      : wisdom.MediaReadyIntegrationEvent.GoWorker.dlq (durable, 7-day TTL)
