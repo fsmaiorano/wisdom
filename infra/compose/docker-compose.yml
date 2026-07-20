@@ -150,10 +150,10 @@ services:
           "CMD-SHELL",
           "exec 3<>/dev/tcp/localhost/9000 && printf 'GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n' >&3 && grep -q UP <&3",
         ]
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      retries: 10
-      start_period: 60s
+      retries: 20
+      start_period: 90s
 
   minio:
     image: minio/minio:latest
@@ -221,6 +221,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-course-api:
@@ -244,6 +250,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-media-api:
@@ -265,6 +277,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-order-api:
@@ -284,6 +302,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-learning-api:
@@ -303,6 +327,12 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-bff:
@@ -316,13 +346,26 @@ services:
     ports:
       - "6100:8080"
     depends_on:
-      - wisdom-user-api
-      - wisdom-course-api
-      - wisdom-media-api
-      - wisdom-order-api
-      - wisdom-learning-api
-      - wisdom-streaming
-      - keycloak
+      wisdom-user-api:
+        condition: service_healthy
+      wisdom-course-api:
+        condition: service_healthy
+      wisdom-media-api:
+        condition: service_healthy
+      wisdom-order-api:
+        condition: service_healthy
+      wisdom-learning-api:
+        condition: service_healthy
+      wisdom-streaming:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-media-worker:
@@ -370,7 +413,8 @@ services:
     ports:
       - "6001:80"
     depends_on:
-      - wisdom-bff
+      wisdom-bff:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:
