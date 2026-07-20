@@ -32,14 +32,17 @@ export class EnvironmentService {
   }
 
   private _loadOrDefault(): EnvironmentOption {
+    const buildDefault =
+      ENVIRONMENT_OPTIONS.find((e) => e.apiUrl === environment.apiUrl) ?? ENVIRONMENT_OPTIONS[0];
+
     if (environment.production) {
-      return ENVIRONMENT_OPTIONS[0];
+      return buildDefault;
     }
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return ENVIRONMENT_OPTIONS.find((e) => e.apiUrl === saved) ?? ENVIRONMENT_OPTIONS[0];
+      return ENVIRONMENT_OPTIONS.find((e) => e.apiUrl === saved) ?? buildDefault;
     } catch {
-      return ENVIRONMENT_OPTIONS[0];
+      return buildDefault;
     }
   }
 }
