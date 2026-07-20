@@ -8,7 +8,7 @@ export interface EnvironmentOption {
 
 export const ENVIRONMENT_OPTIONS: EnvironmentOption[] = [
   { name: 'Local', apiUrl: 'http://localhost:5000' },
-  { name: 'Docker', apiUrl: 'http://localhost:6000' },
+  { name: 'Docker', apiUrl: 'http://localhost:6100' },
 ];
 
 const STORAGE_KEY = 'wisdom_env';

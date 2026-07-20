@@ -314,7 +314,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_HTTP_PORTS: "8080"
     ports:
-      - "6000:8080"
+      - "6100:8080"
     depends_on:
       - wisdom-user-api
       - wisdom-course-api
@@ -360,6 +360,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  wisdom-ui:
+    build:
+      context: ../../ui/wisdom-ui
+      dockerfile: Dockerfile
+    container_name: wisdom-ui
+    ports:
+      - "6001:80"
+    depends_on:
+      - wisdom-bff
     restart: unless-stopped
 
 volumes:
