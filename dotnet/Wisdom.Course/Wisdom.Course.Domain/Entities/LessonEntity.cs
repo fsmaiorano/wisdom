@@ -1,5 +1,6 @@
 using Wisdom.BuildingBlocks.Abstractions;
 using Wisdom.Course.Domain.ValueObjects;
+
 namespace Wisdom.Course.Domain.Entities;
 
 public class LessonEntity : Aggregate<LessonId>

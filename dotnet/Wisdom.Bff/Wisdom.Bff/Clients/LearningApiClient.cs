@@ -2,6 +2,27 @@ using System.Net.Http.Json;
 
 namespace Wisdom.Bff.Clients;
 
+public interface ILearningApiClient
+{
+    Task<IReadOnlyList<BackendProgress>> GetCourseProgressAsync(
+        IReadOnlyList<Guid> lessonIds, CancellationToken ct);
+
+    Task<BackendProgress> UpdateProgressAsync(UpdateProgressRequest request, CancellationToken ct);
+    Task<BackendProgress> GetProgressByLessonAsync(Guid lessonId, CancellationToken ct);
+}
+
+// Mirrors Wisdom.Learning.Application.Dtos
+public record BackendProgress(
+    Guid ProgressId,
+    Guid UserId,
+    Guid LessonId,
+    int WatchedSeconds,
+    bool IsCompleted,
+    DateTime? UpdatedAt);
+
+public record UpdateProgressRequest(Guid LessonId, int WatchedSeconds, bool IsCompleted);
+public record GetCourseProgressRequest(IReadOnlyList<Guid> LessonIds);
+
 public sealed class LearningApiClient(HttpClient httpClient) : DownstreamClientBase(httpClient), ILearningApiClient
 {
     public async Task<IReadOnlyList<BackendProgress>> GetCourseProgressAsync(

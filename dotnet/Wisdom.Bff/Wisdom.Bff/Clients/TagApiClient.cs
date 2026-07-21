@@ -2,6 +2,16 @@ using System.Net.Http.Json;
 
 namespace Wisdom.Bff.Clients;
 
+public interface ITagApiClient
+{
+    Task<IReadOnlyList<BackendTag>> GetTagsAsync(CancellationToken ct);
+    Task<BackendTag> CreateTagAsync(CreateTagRequest request, CancellationToken ct);
+    Task AddTagToCourseAsync(Guid courseId, Guid tagId, CancellationToken ct);
+}
+
+public record BackendTag(Guid TagId, string Name);
+public record CreateTagRequest(string Name);
+
 public sealed class TagApiClient(HttpClient httpClient) : DownstreamClientBase(httpClient), ITagApiClient
 {
     public async Task<IReadOnlyList<BackendTag>> GetTagsAsync(CancellationToken ct)
