@@ -7,7 +7,7 @@ export interface EnvironmentOption {
 }
 
 export const ENVIRONMENT_OPTIONS: EnvironmentOption[] = [
-  { name: 'Local', apiUrl: 'http://localhost:5000' },
+  { name: 'Local', apiUrl: 'http://localhost:5001' },
   { name: 'Docker', apiUrl: 'http://localhost:6100' },
 ];
 

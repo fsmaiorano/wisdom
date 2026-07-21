@@ -97,7 +97,7 @@
       "cwd": "${workspaceFolder}/dotnet/Wisdom.Bff/Wisdom.Bff",
       "env": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "ASPNETCORE_URLS": "http://localhost:5000"
+        "ASPNETCORE_URLS": "http://localhost:5001"
       },
       "stopAtEntry": false,
       "console": "internalConsole"
