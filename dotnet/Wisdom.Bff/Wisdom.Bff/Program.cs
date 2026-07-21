@@ -4,49 +4,10 @@ using Wisdom.Bff.Aggregations.Courses;
 using Wisdom.Bff.Aggregations.Dashboard;
 using Wisdom.Bff.Auth;
 using Wisdom.Bff.Clients;
-using Wisdom.BuildingBlocks.Auth;
-using Wisdom.BuildingBlocks.Extensions;
-using Yarp.ReverseProxy.Transforms;
+using Wisdom.Bff.Endpoints;
+using Wisdom.Bff.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
-
-var internalApiKey = builder.Configuration["InternalAuth:ApiKey"]
-    ?? throw new InvalidOperationException("InternalAuth:ApiKey is required.");
-
-// ── Reverse proxy with internal-auth transforms ────────────────────────────
-// YARP validates JWT at the BFF edge; backend services never see the raw token.
-// For every proxied request:
-//   1. Strip the Authorization header (JWT stays at the BFF boundary)
-//   2. Add X-Internal-Api-Key so backends know the request is trusted
-//   3. Forward X-User-Id / X-User-Email from the authenticated principal
-builder.Services
-    .AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"))
-    .AddTransforms(ctx =>
-    {
-        ctx.AddRequestTransform(transform =>
-        {
-            transform.ProxyRequest.Headers.Remove("Authorization");
-            transform.ProxyRequest.Headers.TryAddWithoutValidation(
-                InternalAuthHandler.ApiKeyHeader, internalApiKey);
-
-            var user = transform.HttpContext.User;
-            if (user.Identity?.IsAuthenticated == true)
-            {
-                var userId = user.GetUserId()?.ToString();
-                var email  = user.GetEmail();
-
-                if (userId is not null)
-                    transform.ProxyRequest.Headers.TryAddWithoutValidation(
-                        InternalAuthHandler.UserIdHeader, userId);
-                if (email is not null)
-                    transform.ProxyRequest.Headers.TryAddWithoutValidation(
-                        InternalAuthHandler.UserEmailHeader, email);
-            }
-
-            return ValueTask.CompletedTask;
-        });
-    });
 
 // ── CORS ───────────────────────────────────────────────────────────────────
 var allowedOrigins = builder.Configuration
@@ -85,19 +46,49 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// ── HTTP clients for aggregation endpoints ─────────────────────────────────
+// ── Downstream error translation ───────────────────────────────────────────
+// Typed clients throw DownstreamHttpException on any non-success response;
+// this relays the exact downstream status/body instead of a generic 500.
+builder.Services.AddExceptionHandler<DownstreamExceptionHandler>();
+builder.Services.AddProblemDetails();
+
+// ── HTTP clients ────────────────────────────────────────────────────────────
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<AuthForwardingHandler>();
 
-// Keycloak HTTP client (used by AuthHandler for token exchange)
+// Keycloak HTTP client (used by AuthHandler for the BFF-native login exchange)
 builder.Services.AddHttpClient("keycloak");
 
-// Auth handler for BFF login endpoint
+// Raw byte-range client for the video stream proxy — no AuthForwardingHandler,
+// StreamEndpoint builds its own headers since anonymous callers are allowed.
+builder.Services.AddHttpClient("stream");
+
+// Auth handler for the BFF-native /bff/auth/login endpoint
 builder.Services.AddTransient<AuthHandler>();
+
+builder.Services
+    .AddHttpClient<UserApiClient>(c =>
+        c.BaseAddress = new Uri(builder.Configuration["BackendServices:UserApi"]!))
+    .AddHttpMessageHandler<AuthForwardingHandler>();
 
 builder.Services
     .AddHttpClient<CourseApiClient>(c =>
         c.BaseAddress = new Uri(builder.Configuration["BackendServices:CourseApi"]!))
+    .AddHttpMessageHandler<AuthForwardingHandler>();
+
+builder.Services
+    .AddHttpClient<LessonApiClient>(c =>
+        c.BaseAddress = new Uri(builder.Configuration["BackendServices:CourseApi"]!))
+    .AddHttpMessageHandler<AuthForwardingHandler>();
+
+builder.Services
+    .AddHttpClient<TagApiClient>(c =>
+        c.BaseAddress = new Uri(builder.Configuration["BackendServices:CourseApi"]!))
+    .AddHttpMessageHandler<AuthForwardingHandler>();
+
+builder.Services
+    .AddHttpClient<MediaApiClient>(c =>
+        c.BaseAddress = new Uri(builder.Configuration["BackendServices:MediaApi"]!))
     .AddHttpMessageHandler<AuthForwardingHandler>();
 
 builder.Services
@@ -111,7 +102,11 @@ builder.Services
     .AddHttpMessageHandler<AuthForwardingHandler>();
 
 // Expose typed clients through interfaces so handlers (and tests) depend on abstractions
+builder.Services.AddTransient<IUserApiClient>(sp => sp.GetRequiredService<UserApiClient>());
 builder.Services.AddTransient<ICourseApiClient>(sp => sp.GetRequiredService<CourseApiClient>());
+builder.Services.AddTransient<ILessonApiClient>(sp => sp.GetRequiredService<LessonApiClient>());
+builder.Services.AddTransient<ITagApiClient>(sp => sp.GetRequiredService<TagApiClient>());
+builder.Services.AddTransient<IMediaApiClient>(sp => sp.GetRequiredService<MediaApiClient>());
 builder.Services.AddTransient<IOrderApiClient>(sp => sp.GetRequiredService<OrderApiClient>());
 builder.Services.AddTransient<ILearningApiClient>(sp => sp.GetRequiredService<LearningApiClient>());
 
@@ -128,7 +123,7 @@ builder.Services.AddOpenApi();
 // ── Health checks ──────────────────────────────────────────────────────────
 builder.Services.AddHealthChecks();
 
-// ──────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────
 
 var app = builder.Build();
 
@@ -143,6 +138,8 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseExceptionHandler();
+
 app.UseCors();
 
 if (!app.Environment.IsDevelopment())
@@ -153,17 +150,20 @@ app.UseAuthorization();
 
 app.MapHealthChecks("/health");
 
-// ── BFF aggregation endpoints ──────────────────────────────────────────────
+// ── BFF-native endpoints ─────────────────────────────────────────────────
 app.MapAuthEndpoints();
 app.MapCoursePageEndpoints();
 app.MapDashboardEndpoints();
 
-// ── YARP reverse proxy — must be last ──────────────────────────────────────
-app.MapReverseProxy();
+// ── Explicit per-operation proxy endpoints ──────────────────────────────
+app.MapUserAuthEndpoints();
+app.MapUserEndpoints();
+app.MapCourseEndpoints();
+app.MapLessonEndpoints();
+app.MapTagEndpoints();
+app.MapMediaEndpoints();
+app.MapOrderEndpoints();
+app.MapProgressEndpoints();
+app.MapStreamEndpoints();
 
 app.Run();
-
-namespace Wisdom.Bff
-{
-    public partial class BffProgram;
-}

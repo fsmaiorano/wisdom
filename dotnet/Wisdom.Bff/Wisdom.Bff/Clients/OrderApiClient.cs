@@ -1,28 +1,27 @@
-using System.Text.Json;
+using System.Net.Http.Json;
 
 namespace Wisdom.Bff.Clients;
 
-public sealed class OrderApiClient(HttpClient httpClient) : IOrderApiClient
+public sealed class OrderApiClient(HttpClient httpClient) : DownstreamClientBase(httpClient), IOrderApiClient
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
-    public async Task<BackendCheckEnrollment?> CheckEnrollmentAsync(Guid courseId, CancellationToken ct)
+    public Task<BackendCheckEnrollment> CheckEnrollmentAsync(Guid courseId, CancellationToken ct)
     {
-        var response = await httpClient.GetAsync($"/api/orders/enrollments/{courseId}/check", ct);
-
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        return await response.Content.ReadFromJsonAsync<BackendCheckEnrollment>(JsonOptions, ct);
+        var req = new HttpRequestMessage(HttpMethod.Get, $"/api/orders/enrollments/{courseId}/check");
+        return SendAsync<BackendCheckEnrollment>(req, ct)!;
     }
 
     public async Task<IReadOnlyList<BackendEnrollment>> GetEnrollmentsAsync(CancellationToken ct)
     {
-        var response = await httpClient.GetAsync("/api/orders/enrollments", ct);
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/orders/enrollments");
+        return await SendAsync<List<BackendEnrollment>>(req, ct) ?? [];
+    }
 
-        if (!response.IsSuccessStatusCode)
-            return [];
-
-        return await response.Content.ReadFromJsonAsync<List<BackendEnrollment>>(JsonOptions, ct) ?? [];
+    public Task<BackendPurchase> PurchaseCourseAsync(PurchaseCourseRequest request, CancellationToken ct)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Post, "/api/orders/purchase")
+        {
+            Content = JsonContent.Create(request, options: JsonOptions),
+        };
+        return SendAsync<BackendPurchase>(req, ct)!;
     }
 }

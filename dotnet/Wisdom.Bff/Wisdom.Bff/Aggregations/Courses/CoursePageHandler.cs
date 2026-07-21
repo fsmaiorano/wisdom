@@ -4,14 +4,14 @@ namespace Wisdom.Bff.Aggregations.Courses;
 
 public sealed class CoursePageHandler(
     ICourseApiClient courseClient,
+    ILessonApiClient lessonClient,
     IOrderApiClient orderClient,
     ILearningApiClient learningClient)
 {
-    public async Task<CoursePageResponse?> ExecuteAsync(
-        Guid courseId, bool isAuthenticated, CancellationToken ct)
+    public async Task<CoursePageResponse?> ExecuteAsync(Guid courseId, bool isAuthenticated, CancellationToken ct)
     {
         var courseTask = courseClient.GetCourseAsync(courseId, ct);
-        var lessonsTask = courseClient.GetLessonsAsync(courseId, ct);
+        var lessonsTask = lessonClient.GetLessonsAsync(courseId, ct);
         await Task.WhenAll(courseTask, lessonsTask);
 
         var course = courseTask.Result;
@@ -20,32 +20,27 @@ public sealed class CoursePageHandler(
         if (course is null)
             return null;
 
-        EnrollmentInfo enrollment = new(false, null);
-        Dictionary<Guid, BackendProgress> progressMap = [];
+        var enrollment = new EnrollmentInfo(false, null);
+        var progressMap = new Dictionary<Guid, LessonProgress>();
 
         if (isAuthenticated)
         {
             var enrollmentResult = await orderClient.CheckEnrollmentAsync(courseId, ct);
-            enrollment = new EnrollmentInfo(enrollmentResult?.IsEnrolled ?? false, null);
+            enrollment = new EnrollmentInfo(enrollmentResult.IsEnrolled, null);
 
             if (enrollment.IsEnrolled && lessons.Count > 0)
             {
                 var lessonIds = lessons.Select(l => l.LessonId).ToList();
-                var progressData = await learningClient.GetCourseProgressAsync(lessonIds, ct);
-                progressMap = progressData.ToDictionary(p => p.LessonId);
+                var progress = await learningClient.GetCourseProgressAsync(lessonIds, ct);
+                progressMap = progress.ToDictionary(p => p.LessonId, p => new LessonProgress(p.WatchedSeconds, p.IsCompleted));
             }
         }
 
         var lessonsWithProgress = lessons
             .OrderBy(l => l.Position)
-            .Select(l =>
-            {
-                progressMap.TryGetValue(l.LessonId, out var p);
-                return new LessonWithProgress(
-                    l.LessonId, l.CourseId, l.Title, l.Description,
-                    l.Position, l.IsPreview, l.CreatedAt, l.MediaId,
-                    p is null ? null : new LessonProgress(p.WatchedSeconds, p.IsCompleted));
-            })
+            .Select(l => new LessonWithProgress(
+                l.LessonId, l.CourseId, l.Title, l.Description, l.Position, l.IsPreview, l.CreatedAt, l.MediaId,
+                progressMap.TryGetValue(l.LessonId, out var p) ? p : null))
             .ToList();
 
         var completedCount = lessonsWithProgress.Count(l => l.Progress?.IsCompleted == true);

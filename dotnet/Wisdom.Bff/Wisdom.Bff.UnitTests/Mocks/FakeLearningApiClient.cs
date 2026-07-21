@@ -16,4 +16,7 @@ public sealed class FakeLearningApiClient : ILearningApiClient
         LastLessonIds = lessonIds;
         return Task.FromResult<IReadOnlyList<BackendProgress>>(ProgressResponse);
     }
+
+    public Task<BackendProgress> UpdateProgressAsync(UpdateProgressRequest request, CancellationToken ct) => throw new NotImplementedException();
+    public Task<BackendProgress> GetProgressByLessonAsync(Guid lessonId, CancellationToken ct) => throw new NotImplementedException();
 }

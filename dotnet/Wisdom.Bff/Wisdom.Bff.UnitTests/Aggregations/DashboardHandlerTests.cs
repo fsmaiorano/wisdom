@@ -8,10 +8,11 @@ public class DashboardHandlerTests
 {
     private readonly FakeOrderApiClient _orderClient = new();
     private readonly FakeCourseApiClient _courseClient = new();
+    private readonly FakeLessonApiClient _lessonClient = new();
     private readonly FakeLearningApiClient _learningClient = new();
 
     private DashboardHandler CreateHandler() =>
-        new(_orderClient, _courseClient, _learningClient);
+        new(_orderClient, _courseClient, _lessonClient, _learningClient);
 
     private static BackendCourse MakeCourse(Guid courseId) =>
         new(courseId, Guid.NewGuid(), "Course", "Desc", 49.99m, true, DateTime.UtcNow);
@@ -52,8 +53,10 @@ public class DashboardHandlerTests
         var courseId1 = Guid.NewGuid();
         var courseId2 = Guid.NewGuid();
         _orderClient.EnrollmentsResponse = [MakeEnrollment(courseId1), MakeEnrollment(courseId2)];
-        _courseClient.Setup(courseId1, MakeCourse(courseId1), []);
-        _courseClient.Setup(courseId2, MakeCourse(courseId2), []);
+        _courseClient.Setup(courseId1, MakeCourse(courseId1));
+        _courseClient.Setup(courseId2, MakeCourse(courseId2));
+        _lessonClient.Setup(courseId1, []);
+        _lessonClient.Setup(courseId2, []);
 
         var result = await CreateHandler().ExecuteAsync(default);
 
@@ -67,7 +70,8 @@ public class DashboardHandlerTests
         var lesson1 = MakeLesson(courseId, 1);
         var lesson2 = MakeLesson(courseId, 2);
         _orderClient.EnrollmentsResponse = [MakeEnrollment(courseId)];
-        _courseClient.Setup(courseId, MakeCourse(courseId), [lesson1, lesson2]);
+        _courseClient.Setup(courseId, MakeCourse(courseId));
+        _lessonClient.Setup(courseId, [lesson1, lesson2]);
 
         await CreateHandler().ExecuteAsync(default);
 
@@ -84,7 +88,8 @@ public class DashboardHandlerTests
         var courseId = Guid.NewGuid();
         var lesson = MakeLesson(courseId, 1);
         _orderClient.EnrollmentsResponse = [MakeEnrollment(courseId)];
-        _courseClient.Setup(courseId, MakeCourse(courseId), [lesson]);
+        _courseClient.Setup(courseId, MakeCourse(courseId));
+        _lessonClient.Setup(courseId, [lesson]);
         _learningClient.ProgressResponse =
         [
             new(Guid.NewGuid(), Guid.NewGuid(), lesson.LessonId, 300, true, DateTime.UtcNow)

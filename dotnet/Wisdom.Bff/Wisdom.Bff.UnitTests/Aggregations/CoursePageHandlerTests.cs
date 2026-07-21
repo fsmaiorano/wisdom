@@ -7,11 +7,12 @@ namespace Wisdom.Bff.UnitTests.Aggregations;
 public class CoursePageHandlerTests
 {
     private readonly FakeCourseApiClient _courseClient = new();
+    private readonly FakeLessonApiClient _lessonClient = new();
     private readonly FakeOrderApiClient _orderClient = new();
     private readonly FakeLearningApiClient _learningClient = new();
 
     private CoursePageHandler CreateHandler() =>
-        new(_courseClient, _orderClient, _learningClient);
+        new(_courseClient, _lessonClient, _orderClient, _learningClient);
 
     private static BackendCourse MakeCourse(Guid? id = null) => new(
         id ?? Guid.NewGuid(), Guid.NewGuid(), "Test Course", "Description", 99.99m, true, DateTime.UtcNow);
@@ -48,7 +49,8 @@ public class CoursePageHandlerTests
     public async Task ExecuteAsync_WhenAnonymous_EnrollmentIsFalseWithNoProgress()
     {
         var courseId = Guid.NewGuid();
-        _courseClient.Setup(MakeCourse(courseId), [MakeLesson(courseId)]);
+        _courseClient.Setup(MakeCourse(courseId));
+        _lessonClient.Setup(courseId, [MakeLesson(courseId)]);
 
         var result = await CreateHandler().ExecuteAsync(courseId, isAuthenticated: false, default);
 
@@ -78,7 +80,8 @@ public class CoursePageHandlerTests
         var courseId = Guid.NewGuid();
         var lesson1 = MakeLesson(courseId, 1);
         var lesson2 = MakeLesson(courseId, 2);
-        _courseClient.Setup(MakeCourse(courseId), [lesson1, lesson2]);
+        _courseClient.Setup(MakeCourse(courseId));
+        _lessonClient.Setup(courseId, [lesson1, lesson2]);
         _orderClient.EnrollmentResponse = new BackendCheckEnrollment(true);
 
         await CreateHandler().ExecuteAsync(courseId, isAuthenticated: true, default);
@@ -94,7 +97,8 @@ public class CoursePageHandlerTests
     {
         var courseId = Guid.NewGuid();
         var lesson = MakeLesson(courseId, 1);
-        _courseClient.Setup(MakeCourse(courseId), [lesson]);
+        _courseClient.Setup(MakeCourse(courseId));
+        _lessonClient.Setup(courseId, [lesson]);
         _orderClient.EnrollmentResponse = new BackendCheckEnrollment(true);
         _learningClient.ProgressResponse =
         [
@@ -116,7 +120,8 @@ public class CoursePageHandlerTests
     public async Task ExecuteAsync_LessonsAreOrderedByPosition()
     {
         var courseId = Guid.NewGuid();
-        _courseClient.Setup(MakeCourse(courseId),
+        _courseClient.Setup(MakeCourse(courseId));
+        _lessonClient.Setup(courseId,
         [
             MakeLesson(courseId, 3),
             MakeLesson(courseId, 1),
@@ -136,7 +141,8 @@ public class CoursePageHandlerTests
     {
         var courseId = Guid.NewGuid();
         var lessons = Enumerable.Range(1, 4).Select(i => MakeLesson(courseId, i)).ToList();
-        _courseClient.Setup(MakeCourse(courseId), lessons);
+        _courseClient.Setup(MakeCourse(courseId));
+        _lessonClient.Setup(courseId, lessons);
         _orderClient.EnrollmentResponse = new BackendCheckEnrollment(true);
         // 2 of 4 completed → 50 %
         _learningClient.ProgressResponse =
@@ -156,7 +162,8 @@ public class CoursePageHandlerTests
     [Fact]
     public async Task ExecuteAsync_WhenNoLessons_ProgressPercentageIsZero()
     {
-        _courseClient.Setup(MakeCourse(), []);
+        _courseClient.Setup(MakeCourse());
+        _lessonClient.Setup([]);
 
         var result = await CreateHandler().ExecuteAsync(Guid.NewGuid(), false, default);
 

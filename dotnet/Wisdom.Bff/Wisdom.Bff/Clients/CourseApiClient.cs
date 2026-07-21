@@ -1,31 +1,51 @@
-using System.Net;
-using System.Text.Json;
+using System.Net.Http.Json;
 
 namespace Wisdom.Bff.Clients;
 
-public sealed class CourseApiClient(HttpClient httpClient) : ICourseApiClient
+public sealed class CourseApiClient(HttpClient httpClient) : DownstreamClientBase(httpClient), ICourseApiClient
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-
-    public async Task<BackendCourse?> GetCourseAsync(Guid courseId, CancellationToken ct)
+    public Task<BackendCourse?> GetCourseAsync(Guid courseId, CancellationToken ct)
     {
-        var response = await httpClient.GetAsync($"/api/courses/{courseId}", ct);
-
-        if (response.StatusCode == HttpStatusCode.NotFound)
-            return null;
-
-        response.EnsureSuccessStatusCode();
-
-        return await response.Content.ReadFromJsonAsync<BackendCourse>(JsonOptions, ct);
+        var req = new HttpRequestMessage(HttpMethod.Get, $"/api/courses/{courseId}");
+        return SendOrDefaultAsync<BackendCourse>(req, ct);
     }
 
-    public async Task<IReadOnlyList<BackendLesson>> GetLessonsAsync(Guid courseId, CancellationToken ct)
+    public async Task<IReadOnlyList<BackendCourse>> ListCoursesAsync(CancellationToken ct)
     {
-        var response = await httpClient.GetAsync($"/api/courses/{courseId}/lessons", ct);
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/courses");
+        return await SendAsync<List<BackendCourse>>(req, ct) ?? [];
+    }
 
-        if (!response.IsSuccessStatusCode)
-            return [];
+    public async Task<IReadOnlyList<BackendCourse>> GetMyCoursesAsync(CancellationToken ct)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, "/api/courses/my");
+        return await SendAsync<List<BackendCourse>>(req, ct) ?? [];
+    }
 
-        return await response.Content.ReadFromJsonAsync<List<BackendLesson>>(JsonOptions, ct) ?? [];
+    public Task<BackendCourse> CreateCourseAsync(CreateCourseRequest request, CancellationToken ct)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Post, "/api/courses")
+        {
+            Content = JsonContent.Create(request, options: JsonOptions),
+        };
+        return SendAsync<BackendCourse>(req, ct)!;
+    }
+
+    public Task<BackendCourse> UpdateCourseAsync(Guid courseId, UpdateCourseRequest request, CancellationToken ct)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Put, $"/api/courses/{courseId}")
+        {
+            Content = JsonContent.Create(request, options: JsonOptions),
+        };
+        return SendAsync<BackendCourse>(req, ct)!;
+    }
+
+    public Task<BackendCourse> PublishCourseAsync(Guid courseId, PublishCourseRequest request, CancellationToken ct)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Patch, $"/api/courses/{courseId}/publish")
+        {
+            Content = JsonContent.Create(request, options: JsonOptions),
+        };
+        return SendAsync<BackendCourse>(req, ct)!;
     }
 }
