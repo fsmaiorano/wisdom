@@ -30,9 +30,9 @@ else
     var env = AnsiConsole.Prompt(
         new SelectionPrompt<string>()
             .Title("[bold]Select environment:[/]")
-            .AddChoices(["Local (http://localhost:5000)", "Docker (http://localhost:6000)"]));
+            .AddChoices(["Local (http://localhost:5000)", "Docker (http://localhost:6100)"]));
 
-    settings.BaseUrl = env.StartsWith("Docker") ? "http://localhost:6000" : "http://localhost:5000";
+    settings.BaseUrl = env.StartsWith("Docker") ? "http://localhost:6100" : "http://localhost:5000";
 }
 
 PrintApiUrls(settings);

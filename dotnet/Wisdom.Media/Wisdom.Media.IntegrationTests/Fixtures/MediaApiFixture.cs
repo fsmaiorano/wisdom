@@ -9,15 +9,15 @@ namespace Wisdom.Media.IntegrationTests.Fixtures;
 
 public class MediaApiFixture : WebApplicationFactoryBase<MediaProgram>, IAsyncLifetime
 {
-    public TestMinioService MinioService { get; } = new();
+    public TestObjectStorageService StorageService { get; } = new();
     public MediaDbContext DbContext { get; private set; } = null!;
 
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         TestDbFactory.ReplaceWithInMemory<MediaDbContext>(services);
 
-        services.RemoveAll<IMinioService>();
-        services.AddSingleton<IMinioService>(MinioService);
+        services.RemoveAll<IObjectStorageService>();
+        services.AddSingleton<IObjectStorageService>(StorageService);
     }
 
     public Task InitializeAsync()

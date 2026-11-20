@@ -13,7 +13,7 @@ import (
 	"wisdom-streaming/internal/storage"
 )
 
-// StreamHandler serves video files from MinIO with HTTP range request support.
+// StreamHandler serves video files from object storage with HTTP range request support.
 type StreamHandler struct {
 	db     *database.DB
 	store  *storage.Client

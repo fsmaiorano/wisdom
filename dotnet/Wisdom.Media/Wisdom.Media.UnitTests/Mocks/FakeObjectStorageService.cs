@@ -2,7 +2,7 @@ using Wisdom.BuildingBlocks;
 using Wisdom.Media.Application.Interfaces;
 namespace Wisdom.Media.UnitTests.Mocks;
 
-public class FakeMinioService : IMinioService
+public class FakeObjectStorageService : IObjectStorageService
 {
     public bool UploadShouldFail { get; set; }
     public bool GetPresignedUrlShouldFail { get; set; }
@@ -22,7 +22,7 @@ public class FakeMinioService : IMinioService
         LastContentType = contentType;
 
         if (UploadShouldFail)
-            return Task.FromResult(Result<string>.Failure("MinIO error: Upload failed."));
+            return Task.FromResult(Result<string>.Failure("Storage error: Upload failed."));
 
         return Task.FromResult(Result<string>.Success(objectName));
     }
@@ -32,9 +32,9 @@ public class FakeMinioService : IMinioService
         GetPresignedUrlCallCount++;
 
         if (GetPresignedUrlShouldFail)
-            return Task.FromResult(Result<string>.Failure("MinIO error: GetPresignedUrl failed."));
+            return Task.FromResult(Result<string>.Failure("Storage error: GetPresignedUrl failed."));
 
-        return Task.FromResult(Result<string>.Success($"https://fake-minio/{bucketName}/{objectName}?expiry={expirySeconds}"));
+        return Task.FromResult(Result<string>.Success($"https://fake-storage/{bucketName}/{objectName}?expiry={expirySeconds}"));
     }
 
     public Task<Result<bool>> DeleteAsync(string bucketName, string objectName, CancellationToken ct = default)

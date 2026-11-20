@@ -26,11 +26,11 @@ func main() {
 	defer db.Pool.Close()
 	log.Println("Connected to database")
 
-	store, err := storage.New(cfg.MinioURL, cfg.MinioAccessKey, cfg.MinioSecretKey)
+	store, err := storage.New(cfg.S3Endpoint, cfg.S3AccessKey, cfg.S3SecretKey)
 	if err != nil {
-		log.Fatalf("minio client: %v", err)
+		log.Fatalf("S3 client: %v", err)
 	}
-	log.Println("MinIO client ready")
+	log.Println("S3 client ready")
 
 	streamHandler := handler.New(db, store, cfg.InternalAPIKey, cfg.DisableAuth)
 

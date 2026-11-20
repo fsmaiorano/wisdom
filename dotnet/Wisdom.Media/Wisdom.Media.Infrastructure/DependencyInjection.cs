@@ -38,15 +38,15 @@ public static class DependencyInjection
 
         services.AddScoped<IMediaRepository, MediaRepository>();
 
-        var minioSettings = configuration.GetSection("Minio").Get<MinioSettings>() ?? new MinioSettings();
-        services.AddSingleton<MinioSettings>(minioSettings);
+        var storageSettings = configuration.GetSection("Storage").Get<StorageSettings>() ?? new StorageSettings();
+        services.AddSingleton<StorageSettings>(storageSettings);
         services.AddMinio(configureClient => configureClient
-            .WithEndpoint(minioSettings.Endpoint)
-            .WithCredentials(minioSettings.AccessKey, minioSettings.SecretKey)
-            .WithSSL(minioSettings.UseSSL)
+            .WithEndpoint(storageSettings.Endpoint)
+            .WithCredentials(storageSettings.AccessKey, storageSettings.SecretKey)
+            .WithSSL(storageSettings.UseSSL)
             .Build());
 
-        services.AddScoped<IMinioService, MinioService>();
+        services.AddScoped<IObjectStorageService, S3StorageService>();
 
         return services;
     }

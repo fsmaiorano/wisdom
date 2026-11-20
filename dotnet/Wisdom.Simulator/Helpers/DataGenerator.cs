@@ -49,7 +49,11 @@ public static class DataGenerator
         {
             var mocks = Path.Combine(dir.FullName, "mocks");
             if (Directory.Exists(mocks))
-                return [.. Directory.GetFiles(mocks, "*.mkv", SearchOption.TopDirectoryOnly).Order()];
+                return [.. Directory.EnumerateFiles(mocks, "*", SearchOption.TopDirectoryOnly)
+                    .Where(file => file.EndsWith(".mkv", StringComparison.OrdinalIgnoreCase)
+                        || file.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+                    .Order()
+                ];
             dir = dir.Parent;
         }
         return [];

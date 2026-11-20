@@ -2,7 +2,7 @@ using Wisdom.BuildingBlocks;
 using Wisdom.Media.Application.Interfaces;
 namespace Wisdom.Media.IntegrationTests.Mocks;
 
-public class TestMinioService : IMinioService
+public class TestObjectStorageService : IObjectStorageService
 {
     public bool UploadShouldFail { get; set; }
     public bool GetPresignedUrlShouldFail { get; set; }
@@ -20,7 +20,7 @@ public class TestMinioService : IMinioService
         LastObjectName = objectName;
 
         if (UploadShouldFail)
-            return Task.FromResult(Result<string>.Failure("Test MinIO upload failed."));
+            return Task.FromResult(Result<string>.Failure("Test storage upload failed."));
 
         var fakePath = $"test-media/{Guid.NewGuid()}/{objectName.Split('/').Last()}";
         return Task.FromResult(Result<string>.Success(fakePath));
@@ -31,9 +31,9 @@ public class TestMinioService : IMinioService
         GetPresignedUrlCallCount++;
 
         if (GetPresignedUrlShouldFail)
-            return Task.FromResult(Result<string>.Failure("Test MinIO presigned URL failed."));
+            return Task.FromResult(Result<string>.Failure("Test storage presigned URL failed."));
 
-        return Task.FromResult(Result<string>.Success($"https://test-minio/{bucketName}/{objectName}?expires={expirySeconds}"));
+        return Task.FromResult(Result<string>.Success($"https://test-storage/{bucketName}/{objectName}?expires={expirySeconds}"));
     }
 
     public Task<Result<bool>> DeleteAsync(string bucketName, string objectName, CancellationToken ct = default)

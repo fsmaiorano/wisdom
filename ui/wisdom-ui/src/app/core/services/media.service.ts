@@ -16,7 +16,7 @@ export class MediaService {
   }
 
   /**
-   * Upload a file to MinIO via the Media API.
+   * Upload a file to object storage via the Media API.
    * Emits HttpEvents — filter on HttpEventType.UploadProgress for progress,
    * HttpEventType.Response for the final MediaApiResponse.
    */

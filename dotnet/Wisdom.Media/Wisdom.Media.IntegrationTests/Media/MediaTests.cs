@@ -32,7 +32,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     }
 
     private static string ExpectedPresignedUrl(string objectName)
-        => $"https://test-minio/wisdom-media/{objectName}?expires=3600";
+        => $"https://test-storage/wisdom-media/{objectName}?expires=3600";
 
     [Fact]
     public async Task GetMedia_WithInvalidId_Returns404()
@@ -285,7 +285,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
 
         var body = await response.Content.ReadFromJsonAsync<GetMediaResponse>();
         Assert.NotNull(body!.FileUrl);
-        Assert.Contains("test-minio", body.FileUrl);
+        Assert.Contains("test-storage", body.FileUrl);
         Assert.Contains("wisdom-media", body.FileUrl);
         Assert.Contains("test-video.mp4", body.FileUrl);
     }

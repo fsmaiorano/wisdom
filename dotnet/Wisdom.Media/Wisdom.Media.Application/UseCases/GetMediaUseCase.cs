@@ -5,7 +5,7 @@ using Wisdom.Media.Domain.Repositories;
 using Wisdom.Media.Domain.ValueObjects;
 namespace Wisdom.Media.Application.UseCases;
 
-public class GetMediaUseCase(IMediaRepository mediaRepository, IMinioService minioService)
+public class GetMediaUseCase(IMediaRepository mediaRepository, IObjectStorageService storageService)
 {
     private const string BucketName = "wisdom-media";
 
@@ -22,13 +22,13 @@ public class GetMediaUseCase(IMediaRepository mediaRepository, IMinioService min
 
         var media = result.Data;
 
-        var fileUrlResult = await minioService.GetPresignedUrlAsync(BucketName, media.FilePath, ct: ct);
+        var fileUrlResult = await storageService.GetPresignedUrlAsync(BucketName, media.FilePath, ct: ct);
         var fileUrl = fileUrlResult.IsSuccess ? fileUrlResult.Data : null;
 
         string? thumbnailUrl = null;
         if (media.ThumbnailPath is not null)
         {
-            var thumbResult = await minioService.GetPresignedUrlAsync(BucketName, media.ThumbnailPath, ct: ct);
+            var thumbResult = await storageService.GetPresignedUrlAsync(BucketName, media.ThumbnailPath, ct: ct);
             thumbnailUrl = thumbResult.IsSuccess ? thumbResult.Data : null;
         }
 

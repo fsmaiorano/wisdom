@@ -7,7 +7,7 @@ using Wisdom.Media.Domain.Enums;
 using Wisdom.Media.Domain.Repositories;
 namespace Wisdom.Media.Application.UseCases;
 
-public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService minioService, ICorrelationIdService correlationIdService)
+public class UploadMediaUseCase(IMediaRepository mediaRepository, IObjectStorageService storageService, ICorrelationIdService correlationIdService)
 {
     private const string BucketName = "wisdom-media";
     private const string ObjectNamePrefix = "media-raw";
@@ -24,7 +24,7 @@ public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService 
     {
         var objectName = $"{ObjectNamePrefix}/{courseId}/{Guid.NewGuid()}/{fileName}";
 
-        var uploadResult = await minioService.UploadAsync(BucketName, objectName, fileContent, contentType, ct);
+        var uploadResult = await storageService.UploadAsync(BucketName, objectName, fileContent, contentType, ct);
         if (!uploadResult.IsSuccess)
             return Result<GetMediaResponse>.Failure(uploadResult.Error!);
 
@@ -42,7 +42,7 @@ public class UploadMediaUseCase(IMediaRepository mediaRepository, IMinioService 
 
         var created = createResult.Data!;
 
-        var fileUrlResult = await minioService.GetPresignedUrlAsync(BucketName, created.FilePath, ct: ct);
+        var fileUrlResult = await storageService.GetPresignedUrlAsync(BucketName, created.FilePath, ct: ct);
         var fileUrl = fileUrlResult.IsSuccess ? fileUrlResult.Data : null;
 
         return Result<GetMediaResponse>.Success(new GetMediaResponse(

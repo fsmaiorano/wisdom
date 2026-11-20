@@ -10,9 +10,9 @@ import (
 
 type Config struct {
 	Addr               string
-	MinioURL           string
-	MinioAccessKey     string
-	MinioSecretKey     string
+	S3Endpoint         string
+	S3AccessKey        string
+	S3SecretKey        string
 	DBConnectionString string
 	InternalAPIKey     string
 	DisableAuth        bool
@@ -22,9 +22,9 @@ func Load() *Config {
 	loadEnv()
 	return &Config{
 		Addr:               envOr("ADDR", ":8080"),
-		MinioURL:           os.Getenv("MINIO_ENDPOINT"),
-		MinioAccessKey:     os.Getenv("MINIO_ACCESS_KEY"),
-		MinioSecretKey:     os.Getenv("MINIO_SECRET_KEY"),
+		S3Endpoint:         os.Getenv("S3_ENDPOINT"),
+		S3AccessKey:        os.Getenv("S3_ACCESS_KEY"),
+		S3SecretKey:        os.Getenv("S3_SECRET_KEY"),
 		DBConnectionString: os.Getenv("DB_CONN"),
 		InternalAPIKey:     envOr("INTERNAL_API_KEY", "wisdom-internal-2025"),
 		DisableAuth:        os.Getenv("DISABLE_AUTH") == "true",

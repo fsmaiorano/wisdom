@@ -21,7 +21,7 @@ func New(endpoint, accessKey, secretKey string) (*Client, error) {
 		Secure: false,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("minio client: %w", err)
+		return nil, fmt.Errorf("S3 client: %w", err)
 	}
 	return &Client{mc: mc}, nil
 }

@@ -4,7 +4,7 @@ using Wisdom.Media.Domain.Repositories;
 using Wisdom.Media.Domain.ValueObjects;
 namespace Wisdom.Media.Application.UseCases;
 
-public class DeleteMediaUseCase(IMediaRepository mediaRepository, IMinioService minioService)
+public class DeleteMediaUseCase(IMediaRepository mediaRepository, IObjectStorageService storageService)
 {
     private const string BucketName = "wisdom-media";
 
@@ -19,10 +19,10 @@ public class DeleteMediaUseCase(IMediaRepository mediaRepository, IMinioService 
 
         var media = getResult.Data;
 
-        await minioService.DeleteAsync(BucketName, media.FilePath, ct);
+        await storageService.DeleteAsync(BucketName, media.FilePath, ct);
 
         if (media.ThumbnailPath is not null)
-            await minioService.DeleteAsync(BucketName, media.ThumbnailPath, ct);
+            await storageService.DeleteAsync(BucketName, media.ThumbnailPath, ct);
 
         return await mediaRepository.DeleteAsync(MediaId.Of(id), ct);
     }

@@ -7,8 +7,8 @@ public class SimulatorSettings
     /// which validates the JWT and forwards internal auth headers to backends.
     /// </summary>
     public string BaseUrl { get; set; } = "http://localhost:5000"; //Local
-    // public string BaseUrl { get; set; } = "http://localhost:6000"; //Docker
-    //BASE_URL=http://localhost:6000 dotnet run
+    // public string BaseUrl { get; set; } = "http://localhost:6100"; //Docker
+    //BASE_URL=http://localhost:6100 dotnet run
 
     public int LessonsPerCourse  { get; set; } = 5;
     public int NumberOfCustomers { get; set; } = 3;

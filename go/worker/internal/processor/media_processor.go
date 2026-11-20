@@ -19,10 +19,10 @@ import (
 // MediaReadyIntegrationEvent: download → transcode → upload → mark ready.
 type MediaProcessor struct {
 	db    *database.DB
-	store *storage.MinioClient
+	store *storage.S3Client
 }
 
-func New(db *database.DB, store *storage.MinioClient) *MediaProcessor {
+func New(db *database.DB, store *storage.S3Client) *MediaProcessor {
 	return &MediaProcessor{db: db, store: store}
 }
 

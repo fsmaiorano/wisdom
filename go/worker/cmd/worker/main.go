@@ -31,11 +31,11 @@ func main() {
 	defer db.Pool.Close()
 	log.Println("Connected to database")
 
-	store, err := storage.NewMinioClient(cfg.MinioURL, cfg.MinioUsername, cfg.MinioPassword)
+	store, err := storage.NewS3Client(cfg.S3Endpoint, cfg.S3AccessKey, cfg.S3SecretKey)
 	if err != nil {
-		log.Fatalf("Failed to create MinIO client: %v", err)
+		log.Fatalf("Failed to create S3 client: %v", err)
 	}
-	log.Println("MinIO client ready")
+	log.Println("S3 client ready")
 
 	mediaProcessor := processor.New(db, store)
 

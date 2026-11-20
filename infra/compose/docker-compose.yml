@@ -155,23 +155,29 @@ services:
       retries: 20
       start_period: 90s
 
-  minio:
-    image: cgr.dev/chainguard/minio:latest
-    container_name: minio
-    command: server /data --console-address ":9001"
+  seaweedfs:
+    image: chrislusf/seaweedfs:latest
+    container_name: seaweedfs
+    command: server -dir=/data -master.volumeSizeLimitMB=1024 -s3 -s3.port=9000
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: admin123
+      AWS_ACCESS_KEY_ID: admin
+      AWS_SECRET_ACCESS_KEY: admin123
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9000:9000" # S3 API
+      - "9333:9333" # Master UI
+      - "8888:8888" # Filer UI
     volumes:
-      - minio-data:/data
+      - seaweedfs-data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:9333/cluster/status >/dev/null && wget -S -qO- http://127.0.0.1:9000 2>&1 | grep -q 'HTTP/'",
+        ]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 15s
     restart: unless-stopped
 
   rabbitmq:

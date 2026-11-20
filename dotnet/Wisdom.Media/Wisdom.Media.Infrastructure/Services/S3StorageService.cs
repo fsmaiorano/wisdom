@@ -5,15 +5,15 @@ using Wisdom.Media.Application.Interfaces;
 using Wisdom.Media.Infrastructure.Settings;
 namespace Wisdom.Media.Infrastructure.Services;
 
-public class MinioService(IMinioClient minioClient) : IMinioService
+public class S3StorageService(IMinioClient s3Client) : IObjectStorageService
 {
     public async Task<Result<string>> UploadAsync(string bucketName, string objectName, Stream content, string contentType, CancellationToken ct = default)
     {
         try
         {
-            var bucketExists = await minioClient.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName), ct);
+            var bucketExists = await s3Client.BucketExistsAsync(new BucketExistsArgs().WithBucket(bucketName), ct);
             if (!bucketExists)
-                await minioClient.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName), ct);
+                await s3Client.MakeBucketAsync(new MakeBucketArgs().WithBucket(bucketName), ct);
 
             Stream uploadStream = content;
             if (!content.CanSeek)
@@ -24,7 +24,7 @@ public class MinioService(IMinioClient minioClient) : IMinioService
                 uploadStream = ms;
             }
 
-            await minioClient.PutObjectAsync(new PutObjectArgs()
+            await s3Client.PutObjectAsync(new PutObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(objectName)
                 .WithStreamData(uploadStream)
@@ -43,7 +43,7 @@ public class MinioService(IMinioClient minioClient) : IMinioService
     {
         try
         {
-            var url = await minioClient.PresignedGetObjectAsync(new PresignedGetObjectArgs()
+            var url = await s3Client.PresignedGetObjectAsync(new PresignedGetObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(objectName)
                 .WithExpiry(expirySeconds));
@@ -59,7 +59,7 @@ public class MinioService(IMinioClient minioClient) : IMinioService
     {
         try
         {
-            await minioClient.RemoveObjectAsync(new RemoveObjectArgs()
+            await s3Client.RemoveObjectAsync(new RemoveObjectArgs()
                 .WithBucket(bucketName)
                 .WithObject(objectName), ct);
             return Result<bool>.Success(true);

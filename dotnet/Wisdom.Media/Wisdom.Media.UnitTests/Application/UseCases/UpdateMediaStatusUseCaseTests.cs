@@ -11,9 +11,9 @@ namespace Wisdom.Media.UnitTests.Application.UseCases;
 public class UpdateMediaStatusUseCaseTests
 {
     private readonly FakeMediaRepository _repo = new();
-    private readonly FakeMinioService _minio = new();
+    private readonly FakeObjectStorageService _storage = new();
 
-    private UpdateMediaStatusUseCase CreateUseCase() => new(_repo, _minio);
+    private UpdateMediaStatusUseCase CreateUseCase() => new(_repo, _storage);
 
     private MediaEntity CreateAndSeedMedia(Guid? lessonId = null)
     {

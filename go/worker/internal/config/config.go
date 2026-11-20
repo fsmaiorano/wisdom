@@ -12,9 +12,9 @@ import (
 
 type Config struct {
 	RabbitURL            string
-	MinioURL             string
-	MinioUsername        string
-	MinioPassword        string
+	S3Endpoint           string
+	S3AccessKey          string
+	S3SecretKey          string
 	DBConnectionString   string
 	ReconcilerInterval   time.Duration
 	ReconcilerStaleAfter time.Duration
@@ -45,9 +45,9 @@ func Load() *Config {
 	loadEnv()
 	return &Config{
 		RabbitURL:            os.Getenv("RABBITMQ_URL"),
-		MinioURL:             os.Getenv("MINIO_ENDPOINT"),
-		MinioUsername:        os.Getenv("MINIO_ACCESS_KEY"),
-		MinioPassword:        os.Getenv("MINIO_SECRET_KEY"),
+		S3Endpoint:           os.Getenv("S3_ENDPOINT"),
+		S3AccessKey:          os.Getenv("S3_ACCESS_KEY"),
+		S3SecretKey:          os.Getenv("S3_SECRET_KEY"),
 		DBConnectionString:   os.Getenv("DB_CONN"),
 		ReconcilerInterval:   envDuration("RECONCILER_INTERVAL_SECONDS", 60),
 		ReconcilerStaleAfter: envDuration("RECONCILER_STALE_SECONDS", 300),

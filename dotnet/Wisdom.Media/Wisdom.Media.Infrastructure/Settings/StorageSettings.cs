@@ -1,6 +1,6 @@
 namespace Wisdom.Media.Infrastructure.Settings;
 
-public class MinioSettings
+public class StorageSettings
 {
     public string Endpoint { get; set; } = string.Empty;
     public string AccessKey { get; set; } = string.Empty;
