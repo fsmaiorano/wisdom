@@ -54,28 +54,48 @@ public sealed class EventBus : IEventBus, IAsyncDisposable, IDisposable
 
         var factory = new ConnectionFactory { Uri = new Uri(connectionString) };
 
-        var attempt = 0;
+        // This constructor runs synchronously inside the DI container — including,
+        // in Development, the Generic Host's automatic ValidateOnBuild pass, which
+        // happens INSIDE builder.Build(), before Kestrel binds. A connection attempt
+        // that hangs (not just fails) used to block the whole process from ever
+        // coming up, with no visible error. Both the per-attempt time and the total
+        // number of attempts are now bounded, so a stuck RabbitMQ connection fails
+        // loudly in seconds instead of hanging forever in silence.
+        const int maxAttempts = 8;
+        var perAttemptTimeout = TimeSpan.FromSeconds(5);
         var delay = TimeSpan.FromSeconds(2);
 
-        while (true)
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
         {
             try
             {
-                _connection = factory.CreateConnectionAsync().GetAwaiter().GetResult();
+                _connection = ConnectWithTimeout(factory, perAttemptTimeout);
                 _logger.LogInformation("RabbitMQ EventBus connected");
-                break;
+                return;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (attempt < maxAttempts)
             {
-                attempt++;
                 _logger.LogWarning(ex,
-                    "Unable to connect to RabbitMQ (attempt {Attempt}). Retrying in {Delay}s…",
-                    attempt, delay.TotalSeconds);
+                    "Unable to connect to RabbitMQ (attempt {Attempt}/{MaxAttempts}). Retrying in {Delay}s…",
+                    attempt, maxAttempts, delay.TotalSeconds);
 
                 Thread.Sleep(delay);
                 delay = TimeSpan.FromSeconds(Math.Min(delay.TotalSeconds * 2, 30));
             }
         }
+
+        throw new InvalidOperationException(
+            $"Unable to connect to RabbitMQ at '{factory.Uri}' after {maxAttempts} attempts. " +
+            "Check that the broker is running and reachable.");
+    }
+
+    private static IConnection ConnectWithTimeout(ConnectionFactory factory, TimeSpan timeout)
+    {
+        var task = factory.CreateConnectionAsync();
+        if (!task.Wait(timeout))
+            throw new TimeoutException($"Connecting to RabbitMQ did not complete within {timeout.TotalSeconds}s.");
+
+        return task.GetAwaiter().GetResult();
     }
 
     // ── Naming helpers ───────────────────────────────────────────────────────

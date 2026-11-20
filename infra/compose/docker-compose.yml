@@ -156,7 +156,7 @@ services:
       start_period: 90s
 
   minio:
-    image: minio/minio:latest
+    image: cgr.dev/chainguard/minio:latest
     container_name: minio
     command: server /data --console-address ":9001"
     environment:
@@ -244,7 +244,7 @@ services:
         condition: service_healthy
       mediadb:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
       keycloak:
         condition: service_healthy
@@ -271,7 +271,7 @@ services:
     depends_on:
       mediadb:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
       keycloak:
         condition: service_healthy
@@ -380,7 +380,7 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
     restart: unless-stopped
 
@@ -396,7 +396,7 @@ services:
     depends_on:
       mediadb:
         condition: service_healthy
-      minio:
+      seaweedfs:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
@@ -424,6 +424,6 @@ volumes:
   mediadb-data:
   orderdb-data:
   learningdb-data:
-  minio-data:
+  seaweedfs-data:
   rabbitmq-data:
   seq-data:

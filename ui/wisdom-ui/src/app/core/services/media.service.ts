@@ -1,15 +1,9 @@
+import { HttpClient, HttpEvent, HttpParams, HttpRequest, HttpResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import {
-  HttpClient,
-  HttpEvent,
-  HttpParams,
-  HttpRequest,
-  HttpResponse,
-} from '@angular/common/http';
 import { filter, map, Observable } from 'rxjs';
-import { EnvironmentService } from './environment.service';
 import { MediaApiResponse, MediaTypeEnum } from '../models/api.model';
 import { LessonContentType } from '../models/lesson.model';
+import { EnvironmentService } from './environment.service';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
@@ -35,6 +29,7 @@ export class MediaService {
     const formData = new FormData();
     formData.append('file', file);
 
+    debugger;
     const req = new HttpRequest<FormData>(
       'POST',
       `${this._env.apiUrl}/api/media/upload`,

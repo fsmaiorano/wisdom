@@ -91,11 +91,23 @@
           </div>
         }
 
-        <!-- Add resources -->
+        <!-- Add content -->
         <div class="section-title">
           <mat-icon>folder_open</mat-icon>
-          <span>Add Resources</span>
+          <span>Add Files</span>
         </div>
+        <p class="section-hint">Attach a video or a document (PDF, slides, source code, etc.).</p>
+
+        <mat-button-toggle-group class="content-type-toggle"
+          [value]="newResourceType()"
+          (change)="setNewResourceType($event.value)">
+          <mat-button-toggle value="Video">
+            <mat-icon>videocam</mat-icon> Video
+          </mat-button-toggle>
+          <mat-button-toggle value="Document">
+            <mat-icon>insert_drive_file</mat-icon> Document
+          </mat-button-toggle>
+        </mat-button-toggle-group>
 
         <div class="upload-area" [class.drag-over]="resourcesDragOver()"
           (dragover)="onDragOver($event)"
@@ -103,7 +115,9 @@
           (drop)="onResourcesDrop($event)">
           <mat-icon class="upload-icon">cloud_upload</mat-icon>
           <p>Drag & drop files here or click to add</p>
-          <input #resourceInput type="file" multiple hidden (change)="onResourcesChange($event)" />
+          <input #resourceInput type="file" multiple hidden
+            [accept]="newResourceType() === 'Video' ? 'video/*,.mkv' : undefined"
+            (change)="onResourcesChange($event)" />
           <button mat-stroked-button type="button" (click)="resourceInput.click()">
             <mat-icon>add</mat-icon> Choose files
           </button>
@@ -112,7 +126,7 @@
             <mat-chip-set class="pending-chips">
               @for (file of newResources(); track file.name; let i = $index) {
                 <mat-chip (removed)="removePendingResource(i)">
-                  <mat-icon matChipAvatar>insert_drive_file</mat-icon>
+                  <mat-icon matChipAvatar>{{ newResourceType() === 'Video' ? 'videocam' : 'insert_drive_file' }}</mat-icon>
                   {{ file.name }} &middot; {{ formatBytes(file.size) }}
                   <button matChipRemove>
                     <mat-icon>cancel</mat-icon>

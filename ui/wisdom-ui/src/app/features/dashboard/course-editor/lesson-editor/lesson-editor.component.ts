@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
@@ -15,9 +16,11 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
-import { LessonApiResponse, MediaApiResponse } from '../../../../core/models/api.model';
+import { LessonApiResponse, MediaApiResponse, MediaTypeEnum } from '../../../../core/models/api.model';
 import { LessonService } from '../../../../core/services/lesson.service';
 import { MediaService } from '../../../../core/services/media.service';
+
+type UploadMediaType = Extract<MediaTypeEnum, 'Video' | 'Document'>;
 
 @Component({
   selector: 'app-lesson-editor',
@@ -25,6 +28,7 @@ import { MediaService } from '../../../../core/services/media.service';
     ReactiveFormsModule,
     MatToolbarModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatCardModule,
     MatChipsModule,
     MatDividerModule,
@@ -47,6 +51,7 @@ export class LessonEditorComponent implements OnInit {
   protected saving = signal(false);
   protected deleting = signal<Set<string>>(new Set());
   protected newResources = signal<File[]>([]);
+  protected newResourceType = signal<UploadMediaType>('Video');
   protected resourcesDragOver = signal(false);
   protected uploadProgress = signal({ done: 0, total: 0 });
 
@@ -153,6 +158,10 @@ export class LessonEditorComponent implements OnInit {
     this.newResources.update((list) => list.filter((_, i) => i !== index));
   }
 
+  protected setNewResourceType(type: UploadMediaType): void {
+    this.newResourceType.set(type);
+  }
+
   protected formatBytes(bytes: number): string {
     if (bytes < 1024) return `${bytes} B`;
     if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -180,9 +189,10 @@ export class LessonEditorComponent implements OnInit {
           if (files.length === 0) return of(updated);
 
           this.uploadProgress.set({ done: 0, total: files.length });
+          const type = this.newResourceType();
           const uploads = files.map((file, i) =>
             this._mediaService
-              .uploadFile(file, this._lessonId, this._courseId, 'Document')
+              .uploadFile(file, this._lessonId, this._courseId, type)
               .pipe(
                 switchMap((media) => {
                   this.uploadProgress.set({ done: i + 1, total: files.length });

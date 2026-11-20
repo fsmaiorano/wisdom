@@ -94,9 +94,9 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     }
 
     [Fact]
-    public async Task GetMedia_PdfType_ReturnsCorrectType()
+    public async Task GetMedia_DocumentType_ReturnsCorrectType()
     {
-        var media = await SeedMediaAsync(MediaTypeEnum.Pdf);
+        var media = await SeedMediaAsync(MediaTypeEnum.Document);
 
         var response = await fixture.DoGet($"/api/media/{media.Id.Value}");
 
@@ -161,7 +161,7 @@ public class MediaTests(MediaApiFixture fixture) : IClassFixture<MediaApiFixture
     {
         var lessonId = BogusFactory.NewGuid();
         var media1 = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, lessonId, MediaTypeEnum.Video, $"media/test/{BogusFactory.UniqueId()}.mp4");
-        var media2 = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, lessonId, MediaTypeEnum.Pdf, $"media/test/{BogusFactory.UniqueId()}.pdf");
+        var media2 = MediaEntity.Create(FakeCorrelationIdService.DefaultCorrelationId, lessonId, MediaTypeEnum.Document, $"media/test/{BogusFactory.UniqueId()}.pdf");
         fixture.DbContext.Media.AddRange(media1, media2);
         await fixture.DbContext.SaveChangesAsync();
 

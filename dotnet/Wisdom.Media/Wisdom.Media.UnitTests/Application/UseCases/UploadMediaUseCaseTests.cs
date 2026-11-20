@@ -44,12 +44,12 @@ public class UploadMediaUseCaseTests
         var useCase = CreateUseCase();
 
         await using var stream = CreateFakeStream();
-        await useCase.ExecuteAsync(lessonId, courseId, MediaTypeEnum.Pdf, stream, "document.pdf", "application/pdf");
+        await useCase.ExecuteAsync(lessonId, courseId, MediaTypeEnum.Document, stream, "document.pdf", "application/pdf");
 
         Assert.Equal(1, _repo.CreateCallCount);
         Assert.NotNull(_repo.LastCreatedMedia);
         Assert.Equal(lessonId, _repo.LastCreatedMedia!.LessonId);
-        Assert.Equal(MediaTypeEnum.Pdf, _repo.LastCreatedMedia.Type);
+        Assert.Equal(MediaTypeEnum.Document, _repo.LastCreatedMedia.Type);
     }
 
     [Fact]

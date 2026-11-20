@@ -23,7 +23,7 @@ public class MediaEntityTests
     public void Create_SetsCreatedAt()
     {
         var before = DateTime.UtcNow;
-        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Pdf, BogusFactory.Url());
+        var media = MediaEntity.Create(CorrelationId, BogusFactory.NewGuid(), MediaTypeEnum.Document, BogusFactory.Url());
         var after = DateTime.UtcNow;
 
         Assert.True(media.CreatedAt >= before && media.CreatedAt <= after);

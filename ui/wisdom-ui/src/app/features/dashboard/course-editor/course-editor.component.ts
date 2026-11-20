@@ -71,7 +71,7 @@ export class CourseEditorComponent implements OnInit {
   }
 
   protected contentTypeIcon(lesson: Lesson): string {
-    return { video: 'videocam', slides: 'slideshow', text: 'article' }[lesson.contentType];
+    return { video: 'videocam', document: 'insert_drive_file' }[lesson.contentType];
   }
 
   protected goBack(): void {

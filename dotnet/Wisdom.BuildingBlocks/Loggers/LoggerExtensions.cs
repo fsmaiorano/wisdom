@@ -18,6 +18,11 @@ public static class LoggerExtensions
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .MinimumLevel.Override("System", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+            // The "Microsoft" override above also silences Microsoft.Hosting.Lifetime,
+            // which is what logs "Now listening on: ..." / "Application started.".
+            // Without this, a slow (not stuck) startup is indistinguishable from a
+            // genuine hang — nothing prints between DB init and the first request.
+            .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
             .Enrich.FromLogContext()
             .Enrich.WithEnvironmentName()
             .Enrich.WithMachineName()

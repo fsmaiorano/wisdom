@@ -1,3 +1,4 @@
+import { HttpEventType } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -14,7 +15,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { concatMap, forkJoin, of, switchMap, tap } from 'rxjs';
-import { HttpEventType } from '@angular/common/http';
 import {
   LESSON_CONTENT_TYPE_LABELS,
   LessonContentType,
@@ -55,7 +55,7 @@ export class CreateLessonComponent {
   protected resourceProgress = signal({ done: 0, total: 0 });
 
   protected readonly contentTypeLabels = LESSON_CONTENT_TYPE_LABELS;
-  protected readonly contentTypes: LessonContentType[] = ['video', 'slides', 'text'];
+  protected readonly contentTypes: LessonContentType[] = ['video', 'document'];
 
   private readonly _fb = inject(FormBuilder);
   private readonly _lessonService = inject(LessonService);
@@ -70,7 +70,6 @@ export class CreateLessonComponent {
     title: ['', [Validators.required, Validators.minLength(3)]],
     description: [''],
     contentType: ['video' as LessonContentType, Validators.required],
-    contentText: [''],
   });
 
   get contentType(): LessonContentType {
@@ -79,13 +78,16 @@ export class CreateLessonComponent {
 
   get uploadStepLabel(): string {
     switch (this.uploadStep()) {
-      case 'creating': return 'Creating lesson…';
-      case 'uploading-content': return `Uploading content… ${this.uploadProgress()}%`;
+      case 'creating':
+        return 'Creating lesson…';
+      case 'uploading-content':
+        return `Uploading content… ${this.uploadProgress()}%`;
       case 'uploading-resources': {
         const { done, total } = this.resourceProgress();
         return `Uploading resources… ${done}/${total}`;
       }
-      default: return '';
+      default:
+        return '';
     }
   }
 
@@ -140,9 +142,9 @@ export class CreateLessonComponent {
       return;
     }
 
-    const { title, description, contentType, contentText } = this.form.getRawValue();
+    const { title, description, contentType } = this.form.getRawValue();
 
-    if ((contentType === 'video' || contentType === 'slides') && !this.contentFile()) {
+    if (!this.contentFile()) {
       this._snackBar.open('Please upload the main content file.', 'Close', { duration: 3000 });
       return;
     }
@@ -153,31 +155,33 @@ export class CreateLessonComponent {
 
     // Step 1: create the lesson record
     this._lessonService
-      .createLesson({ courseId: this._courseId, title, description, contentType, contentText, resources: this.resources() })
+      .createLesson({
+        courseId: this._courseId,
+        title,
+        description,
+        contentType,
+        resources: this.resources(),
+      })
       .pipe(
-        // Step 2: upload main content file (if any)
+        // Step 2: upload main content file
         switchMap((lesson) => {
           const file = this.contentFile();
-          if (!file || contentType === 'text') return of(lesson);
+          if (!file) return of(lesson);
 
           this.uploadStep.set('uploading-content');
           this.uploadProgress.set(0);
           const mediaType = this._mediaService.contentTypeToMediaType(contentType);
-
-          return this._mediaService
-            .upload(file, lesson.lessonId, lesson.courseId, mediaType)
-            .pipe(
-              tap((event) => {
-                if (event.type === HttpEventType.UploadProgress) {
-                  const pct = Math.round((100 * event.loaded) / (event.total ?? event.loaded));
-                  this.uploadProgress.set(pct);
-                }
-              }),
-              // Wait until the response arrives, then pass the lesson along
-              concatMap((event) =>
-                event.type === HttpEventType.Response ? of(lesson) : of(null),
-              ),
-            );
+          debugger;
+          return this._mediaService.upload(file, lesson.lessonId, lesson.courseId, mediaType).pipe(
+            tap((event) => {
+              if (event.type === HttpEventType.UploadProgress) {
+                const pct = Math.round((100 * event.loaded) / (event.total ?? event.loaded));
+                this.uploadProgress.set(pct);
+              }
+            }),
+            // Wait until the response arrives, then pass the lesson along
+            concatMap((event) => (event.type === HttpEventType.Response ? of(lesson) : of(null))),
+          );
         }),
         // Unwrap nulls emitted during progress events
         switchMap((lessonOrNull) => {

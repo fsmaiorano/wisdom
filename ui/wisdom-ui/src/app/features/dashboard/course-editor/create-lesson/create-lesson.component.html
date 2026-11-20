@@ -41,7 +41,7 @@
           <span>Main Content</span>
         </div>
         <p class="section-hint">
-          Usually a video, but can also be slides (images / PDF) or plain text.
+          Upload a video or documents (images / PDF) for this lesson.
         </p>
 
         <mat-button-toggle-group formControlName="contentType" class="content-type-toggle">
@@ -49,8 +49,7 @@
             <mat-button-toggle [value]="type">
               @switch (type) {
                 @case ('video') { <mat-icon>videocam</mat-icon> }
-                @case ('slides') { <mat-icon>slideshow</mat-icon> }
-                @case ('text') { <mat-icon>article</mat-icon> }
+                @case ('document') { <mat-icon>insert_drive_file</mat-icon> }
               }
               {{ contentTypeLabels[type] }}
             </mat-button-toggle>
@@ -81,35 +80,28 @@
               }
             </div>
           }
-          @case ('slides') {
+          @case ('document') {
             <div class="upload-area" [class.drag-over]="contentDragOver()"
               (dragover)="onDragOver($event, 'content')"
               (dragleave)="onDragLeave('content')"
               (drop)="onContentDrop($event)">
               <mat-icon class="upload-icon">burst_mode</mat-icon>
-              <p>Drag & drop or choose a slides file</p>
+              <p>Drag & drop or choose a document file</p>
               <p class="upload-hint">PDF, PPT, PPTX or images</p>
-              <input #slidesInput type="file" accept="image/*,application/pdf,.ppt,.pptx" hidden (change)="onMainFileChange($event)" />
-              <button mat-stroked-button type="button" (click)="slidesInput.click()">
+              <input #documentInput type="file" accept="image/*,application/pdf,.ppt,.pptx" hidden (change)="onMainFileChange($event)" />
+              <button mat-stroked-button type="button" (click)="documentInput.click()">
                 <mat-icon>attach_file</mat-icon>
                 {{ contentFile() ? 'Change file' : 'Choose file' }}
               </button>
               @if (contentFile(); as f) {
                 <mat-chip-set class="file-chip">
                   <mat-chip>
-                    <mat-icon matChipAvatar>slideshow</mat-icon>
+                    <mat-icon matChipAvatar>insert_drive_file</mat-icon>
                     {{ f.name }} &middot; {{ formatBytes(f.size) }}
                   </mat-chip>
                 </mat-chip-set>
               }
             </div>
-          }
-          @case ('text') {
-            <mat-form-field appearance="outline" class="text-content-field">
-              <mat-label>Lesson content</mat-label>
-              <textarea matInput formControlName="contentText" rows="10"
-                placeholder="Write the full lesson content here..."></textarea>
-            </mat-form-field>
           }
         }
 

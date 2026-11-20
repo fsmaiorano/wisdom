@@ -1,9 +1,8 @@
-export type LessonContentType = 'video' | 'slides' | 'text';
+export type LessonContentType = 'video' | 'document';
 
 export const LESSON_CONTENT_TYPE_LABELS: Record<LessonContentType, string> = {
   video: 'Video',
-  slides: 'Slides',
-  text: 'Text',
+  document: 'Documents',
 };
 
 export interface LessonResource {
@@ -20,10 +19,8 @@ export interface Lesson {
   title: string;
   description: string;
   contentType: LessonContentType;
-  /** Mocked filename/url for video or slides content */
+  /** Mocked filename/url for video or document content */
   contentFileName?: string;
-  /** Plain text body when contentType is 'text' */
-  contentText?: string;
   /** Media record ID after upload */
   mediaId?: string;
   isPreview?: boolean;
@@ -36,6 +33,5 @@ export interface CreateLessonRequest {
   description: string;
   contentType: LessonContentType;
   contentFile?: File;
-  contentText?: string;
   resources: File[];
 }
