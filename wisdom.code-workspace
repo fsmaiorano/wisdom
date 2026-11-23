@@ -8,7 +8,8 @@
     { "name": ".NET — Media",    "path": "dotnet/Wisdom.Media" },
     { "name": ".NET — Order",    "path": "dotnet/Wisdom.Order" },
     { "name": ".NET — Learning", "path": "dotnet/Wisdom.Learning" },
-    { "name": "Go — Worker",     "path": "go/worker" }
+    { "name": ".NET — MediaWorker", "path": "dotnet/Wisdom.MediaWorker" },
+    { "name": ".NET — Streaming", "path": "dotnet/Wisdom.Streaming" }
   ],
   "settings": {
     "editor.formatOnSave": true,
@@ -18,20 +19,6 @@
     "omnisharp.useModernNet": true,
     "csharp.debug.console": "internalConsole",
 
-    "go.toolsManagement.autoUpdate": true,
-    "go.lintTool": "golangci-lint",
-    "go.lintOnSave": "package",
-    "go.testFlags": ["-v", "-race"],
-    "go.delveConfig": {
-      "dlvLoadConfig": {
-        "followPointers": true,
-        "maxVariableRecurse": 3,
-        "maxStringLen": 400,
-        "maxArrayValues": 64,
-        "maxStructFields": -1
-      }
-    },
-
     "files.exclude": { "**/bin": true, "**/obj": true },
     "search.exclude": { "**/bin": true, "**/obj": true }
   },
@@ -40,7 +27,6 @@
       "ms-dotnettools.csdevkit",
       "ms-dotnettools.csharp",
       "ms-dotnettools.vscode-dotnet-runtime",
-      "golang.go",
       "angular.ng-template",
       "ms-edgedevtools.vscode-edge-devtools"
     ]

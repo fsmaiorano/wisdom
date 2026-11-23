@@ -15,4 +15,6 @@
 | LearningDb | 5403      | 5403       | 5432          |
 | MediaDb    | 5404      | 5404       | 5432          |
 | OrderDb    | 5405      | 5405       | 5432          |
+| Streaming  | 5011      | 6011       | 8080          |
+| MediaWorker (health) | 5012 | 6012    | 8080          |
 | Seq UI/API | 5500      | 5500       | 80            |

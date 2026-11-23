@@ -15,7 +15,7 @@ Wisdom is a video-based learning platform built as a set of microservices. Instr
                               │
                               │ RabbitMQ (outbox events)
                               ▼
-                       Go media worker ──► SeaweedFS (S3)  ◄── Go streaming service
+                    Media Worker (.NET) ──► SeaweedFS (S3)  ◄── Streaming (.NET)
 ```
 
 ### .NET services (`dotnet/`)
@@ -28,11 +28,13 @@ Wisdom is a video-based learning platform built as a set of microservices. Instr
 | `Wisdom.Media` | Media metadata, upload, outbox and idempotency. Publishes events to RabbitMQ. |
 | `Wisdom.Order` | Course purchases. |
 | `Wisdom.Learning` | Lesson progress tracking. |
+| `Wisdom.MediaWorker` | Background worker. Consumes `MediaReadyIntegrationEvent` from RabbitMQ, transcodes videos with ffmpeg (480p/720p/1080p + thumbnail), uploads them to SeaweedFS and marks the media as `Ready`. A reconciler retries media stuck in `Uploaded`/`Failed`. |
+| `Wisdom.Streaming` | HTTP service that streams videos from SeaweedFS with range request support (`GET/HEAD /stream/{mediaId}?quality=480p\|720p\|1080p`). |
 | `Wisdom.BuildingBlocks` | Shared code (database initialisation, common services). |
 | `Wisdom.Tests.Common` | Shared test helpers. |
 | `Wisdom.Simulator` | Interactive console tool that exercises the whole system through the BFF. |
 
-Each domain service follows the same layered layout:
+Each domain service follows the same layered layout (`Wisdom.MediaWorker` and `Wisdom.Streaming` are lighter: they have no `Domain` and no `Infrastructure.Migration`, because the `Media` table and its migrations belong to `Wisdom.Media`):
 
 ```
 Wisdom.<Service>/
@@ -46,13 +48,6 @@ Wisdom.<Service>/
 ├── Wisdom.<Service>.sln
 └── migrate.sh                                 # Migration helper
 ```
-
-### Go services (`go/`)
-
-| Project | Description |
-|---|---|
-| `go/worker` | Consumes RabbitMQ messages, processes videos and stores the results in SeaweedFS. Includes a reconciler. |
-| `go/streaming` | HTTP service that streams videos from object storage. |
 
 ### Frontend (`ui/wisdom-ui`)
 
@@ -69,7 +64,9 @@ Angular single-page application served by nginx in Docker.
 |---|---|
 | Backend | .NET 10, ASP.NET Core, EF Core 10, Npgsql, Swashbuckle (Swagger), JWT Bearer authentication |
 | Logging | Serilog with Seq and OpenTelemetry sinks |
-| Workers / streaming | Go 1.25, `pgx`, `minio-go`, `amqp091-go`, `godotenv` |
+| Messaging client | RabbitMQ.Client (via `Wisdom.BuildingBlocks` event bus) |
+| Object storage client | Minio SDK |
+| Video processing | ffmpeg / ffprobe |
 | Frontend | Angular 21, Angular Material/CDK, RxJS, TypeScript 5.9, Vitest |
 | Database | PostgreSQL 17 (one database per service) |
 | Identity | Keycloak 26.1 |
@@ -84,7 +81,7 @@ Angular single-page application served by nginx in Docker.
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - EF Core CLI: `dotnet tool install --global dotnet-ef`
 - [Docker](https://www.docker.com/) with Docker Compose
-- [Go 1.25+](https://go.dev/dl/) (only to run the Go services outside Docker)
+- [ffmpeg](https://ffmpeg.org/) (only to run `Wisdom.MediaWorker` outside Docker; the Docker image already includes it)
 - Node.js and npm 11 (only to run the UI outside Docker)
 
 ## Getting started
@@ -115,6 +112,8 @@ Services use the `appsettings.Docker.json` configuration. Databases are migrated
    cd dotnet/Wisdom.Order/Wisdom.Order.Api && dotnet run
    cd dotnet/Wisdom.Learning/Wisdom.Learning.Api && dotnet run
    cd dotnet/Wisdom.Bff/Wisdom.Bff && dotnet run
+   cd dotnet/Wisdom.MediaWorker/Wisdom.MediaWorker.Worker && dotnet run
+   cd dotnet/Wisdom.Streaming/Wisdom.Streaming.Api && dotnet run
    ```
 
 3. Run the UI:
@@ -123,13 +122,6 @@ Services use the `appsettings.Docker.json` configuration. Databases are migrated
    cd ui/wisdom-ui
    npm install
    npm start
-   ```
-
-4. (Optional) Run the Go services. Check each service's `internal/config` for the environment variables it expects (`.env` files are supported through `godotenv`):
-
-   ```bash
-   cd go/worker && go run ./cmd/worker
-   cd go/streaming && go run ./cmd/server
    ```
 
 To build everything in the .NET solution: `dotnet build dotnet/Wisdom.sln`.
@@ -159,7 +151,8 @@ Defined in [`docs/port-mapping.md`](docs/port-mapping.md).
 | Keycloak | 8180 | 8180 | 8080 |
 | RabbitMQ (AMQP / management) | 5672 / 15672 | 5672 / 15672 | same |
 | SeaweedFS (S3 / master / filer) | 9000 / 9333 / 8888 | 9000 / 9333 / 8888 | same |
-| Streaming | n/a | 6011 | 8080 |
+| Streaming | 5011 | 6011 | 8080 |
+| Media Worker (health only) | 5012 | 6012 | 8080 |
 | UI | `ng serve` (4200) | 6001 | 80 |
 
 ## Configuration
@@ -171,6 +164,11 @@ Each API has `appsettings.json`, `appsettings.Development.json` and `appsettings
 - `Keycloak`: `BaseUrl`, `Realm` (`wisdom`), `ClientId` (`wisdom-app`), admin credentials.
 
 > The credentials above (`postgres/postgres`, `admin/admin`) are for **local development only**. Never use them in production.
+
+Service-specific settings:
+
+- **Media Worker** (`Wisdom.MediaWorker.Worker/appsettings.json`): `EventBus:PrefetchCount` (1, so one video is transcoded at a time), `Reconciler:IntervalSeconds` (60), `Reconciler:StaleAfterSeconds` (300), `Storage:*` (SeaweedFS endpoint, credentials, `BucketName`). The queue is `wisdom.MediaReadyIntegrationEvent.MediaWorkerHandler`, with its dead-letter exchange/queue (7-day TTL).
+- **Streaming** (`Wisdom.Streaming.Api/appsettings.json`): `InternalAuth:ApiKey` (the BFF sends it in the `X-Internal-Api-Key` header) and `Streaming:DisableAuth` (`true` only in `appsettings.Development.json`).
 
 Useful local URLs: Keycloak `http://localhost:8180`, RabbitMQ UI `http://localhost:15672`, Seq `http://localhost:5500`.
 
@@ -267,6 +265,13 @@ dotnet test dotnet/Wisdom.User/Wisdom.User.sln
 
 # a single project
 dotnet test dotnet/Wisdom.Course/Wisdom.Course.UnitTests
+```
+
+`Wisdom.MediaWorker` and `Wisdom.Streaming` follow the same layout and have their own solutions and `UnitTests` / `IntegrationTests` projects (integration tests replace the database, storage, ffmpeg and RabbitMQ with fakes, so no infrastructure is needed):
+
+```bash
+dotnet test dotnet/Wisdom.MediaWorker/Wisdom.MediaWorker.sln
+dotnet test dotnet/Wisdom.Streaming/Wisdom.Streaming.sln
 ```
 
 Frontend tests: `cd ui/wisdom-ui && npm test`.

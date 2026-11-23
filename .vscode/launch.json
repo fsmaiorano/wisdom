@@ -16,7 +16,8 @@
         "Media API",
         "Order API",
         "Learning API",
-        "Go Worker"
+        "Media Worker",
+        "Streaming API"
       ],
       "stopAll": true
     },
@@ -42,7 +43,8 @@
         "Media API",
         "Order API",
         "Learning API",
-        "Go Worker"
+        "Media Worker",
+        "Streaming API"
       ],
       "stopAll": true
     },
@@ -178,28 +180,38 @@
       "console": "internalConsole"
     },
 
-    // ── Go Worker ──────────────────────────────────────────────────────────
+    // ── Media Worker ───────────────────────────────────────────────────────
     {
-      "name": "Go Worker",
-      "type": "go",
+      "name": "Media Worker",
+      "type": "coreclr",
       "request": "launch",
-      "mode": "debug",
-      "preLaunchTask": "build: Go Worker",
-      "program": "${workspaceFolder}/go/worker/cmd/worker",
-      "cwd": "${workspaceFolder}/go/worker",
-      "envFile": "${workspaceFolder}/go/worker/.env",
-      "showLog": true
+      "preLaunchTask": "build: MediaWorker",
+      "program": "${workspaceFolder}/dotnet/Wisdom.MediaWorker/Wisdom.MediaWorker.Worker/bin/Debug/net10.0/Wisdom.MediaWorker.Worker.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.MediaWorker/Wisdom.MediaWorker.Worker",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5012"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
     },
+
+    // ── Streaming ──────────────────────────────────────────────────────────
     {
-      "name": "Go Worker (docker env)",
-      "type": "go",
+      "name": "Streaming API",
+      "type": "coreclr",
       "request": "launch",
-      "mode": "debug",
-      "preLaunchTask": "build: Go Worker",
-      "program": "${workspaceFolder}/go/worker/cmd/worker",
-      "cwd": "${workspaceFolder}/go/worker",
-      "envFile": "${workspaceFolder}/go/worker/.env.docker",
-      "showLog": true
+      "preLaunchTask": "build: Streaming",
+      "program": "${workspaceFolder}/dotnet/Wisdom.Streaming/Wisdom.Streaming.Api/bin/Debug/net10.0/Wisdom.Streaming.Api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/dotnet/Wisdom.Streaming/Wisdom.Streaming.Api",
+      "env": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ASPNETCORE_URLS": "http://localhost:5011"
+      },
+      "stopAtEntry": false,
+      "console": "internalConsole"
     }
   ]
 }

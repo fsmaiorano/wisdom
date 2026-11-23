@@ -112,19 +112,29 @@
       "presentation": { "reveal": "silent" },
       "problemMatcher": "$msCompile"
     },
-
-    // ── Go builds ────────────────────────────────────────────────────────────
     {
-      "label": "build: Go Worker",
-      "command": "go",
+      "label": "build: MediaWorker",
+      "command": "dotnet",
       "type": "process",
-      "args": ["build", "./cmd/worker"],
-      "options": {
-        "cwd": "${workspaceFolder}/go/worker"
-      },
+      "args": [
+        "build",
+        "${workspaceFolder}/dotnet/Wisdom.MediaWorker/Wisdom.MediaWorker.Worker/Wisdom.MediaWorker.Worker.csproj"
+      ],
       "group": "build",
       "presentation": { "reveal": "silent" },
-      "problemMatcher": "$go"
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "build: Streaming",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "build",
+        "${workspaceFolder}/dotnet/Wisdom.Streaming/Wisdom.Streaming.Api/Wisdom.Streaming.Api.csproj"
+      ],
+      "group": "build",
+      "presentation": { "reveal": "silent" },
+      "problemMatcher": "$msCompile"
     }
   ]
 }

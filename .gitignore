@@ -48,5 +48,3 @@ mocks/*
 # Environment files
 # .env
 # .env.docker
-
-go/worker/worker

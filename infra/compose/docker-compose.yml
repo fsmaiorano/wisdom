@@ -376,11 +376,14 @@ services:
 
   wisdom-media-worker:
     build:
-      context: ../../go/worker
-      dockerfile: Dockerfile
+      context: ../../dotnet
+      dockerfile: Wisdom.MediaWorker/Wisdom.MediaWorker.Worker/Dockerfile
     container_name: wisdom-media-worker
-    env_file:
-      - ../../go/worker/.env.docker
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
+    ports:
+      - "6012:8080"
     depends_on:
       mediadb:
         condition: service_healthy
@@ -388,15 +391,22 @@ services:
         condition: service_healthy
       seaweedfs:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-streaming:
     build:
-      context: ../../go/streaming
-      dockerfile: Dockerfile
+      context: ../../dotnet
+      dockerfile: Wisdom.Streaming/Wisdom.Streaming.Api/Dockerfile
     container_name: wisdom-streaming
-    env_file:
-      - ../../go/streaming/.env.docker
+    environment:
+      ASPNETCORE_ENVIRONMENT: Docker
+      ASPNETCORE_HTTP_PORTS: "8080"
     ports:
       - "6011:8080"
     depends_on:
@@ -405,10 +415,11 @@ services:
       seaweedfs:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/127.0.0.1/8080' || exit 1"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 15
+      start_period: 30s
     restart: unless-stopped
 
   wisdom-ui:
