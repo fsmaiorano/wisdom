@@ -49,6 +49,7 @@ while (!cts.Token.IsCancellationRequested)
                 "3 — Create course, lessons, X users buy and watch (loop)",
                 "4 — Create course, X users buy and watch with random progression",
                 "5 — Create course, X users buy, watch and shows BFF aggregation",
+                "6 — Demo setup: course with varied lessons + seeded student enrolled",
                 "Exit"
             ]));
 
@@ -70,6 +71,8 @@ while (!cts.Token.IsCancellationRequested)
             await Scenario4.RunAsync(ctx, cts.Token);
         else if (choice.StartsWith("5"))
             await Scenario5.RunAsync(settings, cts.Token);
+        else if (choice.StartsWith("6"))
+            await Scenario6.RunAsync(settings, cts.Token);
     }
     catch (OperationCanceledException)
     {

@@ -299,6 +299,7 @@ Environments: Local (`http://localhost:5000`) or Docker (`http://localhost:6100`
 3. Create a course and lessons; X users buy and watch (loop).
 4. Create a course; X users buy and watch with random progression.
 5. Create a course; X users buy and watch, and show the BFF aggregation.
+6. **Demo setup**: the seeded teacher (`teacher@wisdom.dev` / `demoteacher`) creates and publishes a course with six varied lessons, each with a video from `mocks/`, and the seeded student (`customer@wisdom.dev` / `democustomer`) buys it. No progress is recorded, so signing in as the student shows an enrolled course ready to play. The scenario can wait for the Media Worker to finish transcoding (about 2 minutes per video); lessons become playable as they reach `Ready`.
 
 Defaults (`Config/SimulatorSettings.cs`): 5 lessons per course, 3 customers, 1000 ms watch delay. The full stack must be running before starting the simulator.
 

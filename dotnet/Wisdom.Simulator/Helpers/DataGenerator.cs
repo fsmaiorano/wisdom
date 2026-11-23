@@ -32,6 +32,29 @@ public static class DataGenerator
         Position: position,
         IsPreview: position == 1);
 
+    /// <summary>Hand-written course used by the demo scenario (readable, unlike the Bogus one).</summary>
+    public static CreateCourseRequest DemoCourse() => new(
+        Title: $"Full-Stack Engineering Demo ({DateTime.Now:yyyy-MM-dd HH:mm})",
+        Description: "A hands-on tour from architecture to production: services, data, messaging, delivery and observability.",
+        Price: 49.90m);
+
+    /// <summary>Lessons with different themes (kept to 6: each video takes ~2 min to transcode). The first one is a free preview.</summary>
+    public static CreateLessonRequest[] DemoLessons() =>
+    [
+        new("Welcome and course roadmap",
+            "What you will build, how the modules connect and how to get the most out of the course.", 1, true),
+        new("Designing microservices boundaries",
+            "Bounded contexts, ownership of data and when a monolith is still the right answer.", 2, false),
+        new("Persistence with PostgreSQL and EF Core",
+            "Modelling aggregates, migrations, indexes and avoiding the classic N+1 trap.", 3, false),
+        new("Asynchronous messaging with RabbitMQ",
+            "Exchanges, queues, dead-letter handling, idempotent consumers and the outbox pattern.", 4, false),
+        new("Securing APIs with Keycloak and JWT",
+            "Single sign-on, token validation at the gateway and forwarding identity to backends.", 5, false),
+        new("Video pipelines: upload, transcode, stream",
+            "How a lesson video becomes 480p, 720p and 1080p renditions served with HTTP range requests.", 6, false),
+    ];
+
     public static string FakeThumbnailUrl()
         => Faker.Image.PicsumUrl(800, 600);
 

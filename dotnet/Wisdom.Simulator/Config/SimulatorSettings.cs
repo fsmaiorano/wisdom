@@ -13,4 +13,13 @@ public class SimulatorSettings
     public int LessonsPerCourse  { get; set; } = 5;
     public int NumberOfCustomers { get; set; } = 3;
     public int WatchDelayMs      { get; set; } = 1000;
+
+    // Accounts created by the SeedDemoUsers migration / Keycloak realm export.
+    public string SeedTeacherEmail    { get; set; } = "teacher@wisdom.dev";
+    public string SeedTeacherPassword { get; set; } = "demoteacher";
+    public string SeedStudentEmail    { get; set; } = "customer@wisdom.dev";
+    public string SeedStudentPassword { get; set; } = "democustomer";
+
+    /// <summary>How long Scenario 6 waits for the Media Worker to finish transcoding.</summary>
+    public int MediaProcessingTimeoutSeconds { get; set; } = 1200;
 }

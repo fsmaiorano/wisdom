@@ -52,6 +52,11 @@ public class BffApiClient(string baseUrl) : ApiClientBase(baseUrl)
     public Task<GetCourseResponse?> PublishCourseAsync(Guid courseId, bool publish, CancellationToken ct = default)
         => PatchAsync<GetCourseResponse>($"/api/courses/{courseId}/publish", new PublishCourseRequest(publish), ct);
 
+    // ── Media (proxied to Media service) ───────────────────────────────────
+
+    public Task<List<GetMediaResponse>?> GetLessonMediaAsync(Guid lessonId, CancellationToken ct = default)
+        => GetAsync<List<GetMediaResponse>>($"/api/media/lesson/{lessonId}", ct);
+
     // ── Orders (proxied to Order service) ──────────────────────────────────
 
     public Task<PurchaseCourseResponse?> PurchaseAsync(PurchaseCourseRequest request, CancellationToken ct = default)
