@@ -63,16 +63,17 @@ Angular single-page application served by nginx in Docker.
 | Area | Technologies |
 |---|---|
 | Backend | .NET 10, ASP.NET Core, EF Core 10, Npgsql, Swashbuckle (Swagger), JWT Bearer authentication |
-| Logging | Serilog with Seq and OpenTelemetry sinks |
+| Logging and tracing | Serilog (Console, Seq and OpenTelemetry sinks), OpenTelemetry (ASP.NET Core, HTTP) |
 | Messaging client | RabbitMQ.Client (via `Wisdom.BuildingBlocks` event bus) |
-| Object storage client | Minio SDK |
+| Object storage client | MinIO .NET SDK 6, used only as an S3-compatible client against SeaweedFS (`Wisdom.Media`, `Wisdom.MediaWorker`, `Wisdom.Streaming`) |
 | Video processing | ffmpeg / ffprobe |
 | Frontend | Angular 21, Angular Material/CDK, RxJS, TypeScript 5.9, Vitest |
 | Database | PostgreSQL 17 (one database per service) |
 | Identity | Keycloak 26.1 |
 | Messaging | RabbitMQ 3 (management) |
-| Object storage | SeaweedFS (S3 compatible) |
+| Object storage | SeaweedFS (S3 API on `:9000`, master UI on `:9333`, filer UI on `:8888`); replaces MinIO |
 | Observability | Seq |
+| Containers | Docker Compose; the UI is served by nginx |
 | Tests | xUnit, coverlet, Bogus |
 | Simulator | Spectre.Console, Bogus |
 
@@ -170,7 +171,9 @@ Service-specific settings:
 - **Media Worker** (`Wisdom.MediaWorker.Worker/appsettings.json`): `EventBus:PrefetchCount` (1, so one video is transcoded at a time), `Reconciler:IntervalSeconds` (60), `Reconciler:StaleAfterSeconds` (300), `Storage:*` (SeaweedFS endpoint, credentials, `BucketName`). The queue is `wisdom.MediaReadyIntegrationEvent.MediaWorkerHandler`, with its dead-letter exchange/queue (7-day TTL).
 - **Streaming** (`Wisdom.Streaming.Api/appsettings.json`): `InternalAuth:ApiKey` (the BFF sends it in the `X-Internal-Api-Key` header) and `Streaming:DisableAuth` (`true` only in `appsettings.Development.json`).
 
-Useful local URLs: Keycloak `http://localhost:8180`, RabbitMQ UI `http://localhost:15672`, Seq `http://localhost:5500`.
+- **Media API** (`Wisdom.Media.Api/appsettings*.json`): `Storage:*` (`Endpoint`, `AccessKey`, `SecretKey`, `UseSSL`) pointing at the SeaweedFS S3 API (`localhost:9000`, or `seaweedfs:9000` in Docker). Local credentials are `admin` / `admin123`.
+
+Useful local URLs: Keycloak `http://localhost:8180`, RabbitMQ UI `http://localhost:15672`, Seq `http://localhost:5500`, SeaweedFS master UI `http://localhost:9333`, SeaweedFS filer UI `http://localhost:8888` (objects of the `wisdom-media` bucket are under `/buckets/wisdom-media/`).
 
 ## Database migrations
 
